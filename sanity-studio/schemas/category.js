@@ -11,6 +11,9 @@ export const category = defineType({
     defineField({ name: "description", title: "Description", type: "text" }),
     defineField({ name: "href", title: "Website link", type: "string" }),
     defineField({ name: "order", title: "Display order", type: "number" }),
+    defineField({ name: "imageUrl", title: "Shared Sanity image URL", type: "url" }),
+    defineField({ name: "imageAlt", title: "Shared image alternative text", type: "string" }),
+    defineField({ name: "imageFit", title: "Image fit", type: "string", options: { list: ["cover", "contain"] } }),
     defineField({ name: "mainImage", title: "Category main image", type: "image", options: { hotspot: true }, fields: [defineField({ name: "alt", title: "Alternative text", type: "string" })] }),
   ],
 });
