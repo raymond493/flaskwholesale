@@ -45,6 +45,7 @@ export default function Header() {
       <button className="menu-button" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(!open)}>☰</button>
       <nav className={`menu ${open ? "is-open" : ""}`}>
         <Link href="/" onClick={() => setOpen(false)}>Home</Link>
+        <Link href="/coffee-mug" onClick={() => setOpen(false)}>Coffee Mug</Link>
         {menus.map((menu) => <div className={`nav-group ${menu.columns.length > 1 ? "wide" : ""}`} key={menu.label}>
           <Link href={menu.href} onClick={() => setOpen(false)}>{menu.label}<span className="nav-chevron">⌄</span></Link>
           <div className="dropdown">{menu.columns.map((column) => <div key={column.title}><strong>{column.title}</strong>{column.links.map(([label, href]) => <Link href={href} onClick={() => setOpen(false)} key={href}>{label}</Link>)}</div>)}</div>

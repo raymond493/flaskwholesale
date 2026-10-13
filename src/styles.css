@@ -14,6 +14,7 @@ a{color:inherit;text-decoration:none}
 .brand{display:flex;align-items:center;gap:11px;font-weight:850;font-size:20px;letter-spacing:-.03em}
 .brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:var(--brand);color:#fff;font-weight:900}
 .menu{display:flex;align-items:center;gap:27px;font-size:14px;font-weight:650}
+.menu{gap:18px}
 .menu a:hover{color:var(--brand)}
 .nav-group{position:relative;height:76px;display:flex;align-items:center}
 .nav-group>a{display:flex;align-items:center;gap:5px}

@@ -1,0 +1,1 @@
+module.exports = { content:["./coffee/**/*.js","./app/coffee-mug/**/*.js"], important:".coffee-site", corePlugins:{preflight:false}, theme:{extend:{colors:{ink:"#17211b",eucalyptus:"#1f6f54",leaf:"#4f9d69",cream:"#f7f2e8",kraft:"#c89b63"},boxShadow:{soft:"0 18px 48px rgba(23,33,27,.10)"}}},plugins:[] };
