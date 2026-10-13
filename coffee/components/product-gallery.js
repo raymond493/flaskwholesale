@@ -38,9 +38,11 @@ export function ProductGallery({ images, videoUrls = [], productName }) {
     useEffect(() => {
         if (!zoomed)
             return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
         const close = (event) => event.key === "Escape" && setZoomed(false);
         window.addEventListener("keydown", close);
-        return () => window.removeEventListener("keydown", close);
+        return () => { document.body.style.overflow = previousOverflow; window.removeEventListener("keydown", close); };
     }, [zoomed]);
     function move(offset) {
         setActive((index) => (index + offset + media.length) % media.length);
@@ -88,7 +90,7 @@ export function ProductGallery({ images, videoUrls = [], productName }) {
       {zoomed && current?.type === "image" ? (<div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label="Product image viewer">
           <button type="button" onClick={() => setZoomed(false)} className="absolute right-4 top-4 z-20 rounded-full bg-white p-3 text-slate-950" aria-label="Close image viewer"><X size={24}/></button>
           <div className="relative h-[88vh] w-[92vw]">
-            <Image src={optimizedImageUrl(current.image.imageUrl, 1800, 88)} alt={current.image.alt || productName} fill unoptimized sizes="92vw" className="object-contain"/>
+            <Image src={optimizedImageUrl(current.image.imageUrl, 1800, 88)} alt={current.image.alt || productName} fill unoptimized sizes="92vw" className="object-contain" priority/>
           </div>
           {media.length > 1 ? (<>
               <GalleryArrow label="Previous media" side="left" onClick={() => move(-1)} fixed><ChevronLeft size={26}/></GalleryArrow>

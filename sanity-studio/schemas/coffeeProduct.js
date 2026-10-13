@@ -1,6 +1,7 @@
 import { defineType, defineField } from "sanity";
 const textFields=["description","shortDescription","specificationsText","faqText","detailText"];
 export const coffeeProduct=defineType({name:"coffeeProduct",title:"Coffee Mug",type:"document",fields:[
+  defineField({name:"isActive",title:"Available on website",type:"boolean",initialValue:true,description:"Turn off to take this product offline without deleting its data."}),
   defineField({name:"name",title:"Product name",type:"string"}),defineField({name:"slug",type:"string"}),defineField({name:"eyebrow",type:"string"}),
   ...textFields.map(name=>defineField({name,type:"text"})),defineField({name:"imageUrl",title:"Main image — Sanity CDN URL",type:"url"}),
   defineField({name:"galleryImages",type:"array",of:[{type:"object",fields:[{name:"alt",type:"string"},{name:"imageUrl",type:"url"}]}]}),

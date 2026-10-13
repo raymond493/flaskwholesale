@@ -26,6 +26,7 @@ a{color:inherit;text-decoration:none}
 .dropdown strong{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin:0 0 8px}
 .dropdown a{display:block;padding:6px 0;font-size:13px;font-weight:600;color:var(--ink)}
 .menu-button{display:none;border:0;background:transparent;font-size:26px}
+.mobile-submenu-toggle{display:none}
 .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 20px;border-radius:999px;background:var(--brand);color:#fff;font-weight:750;border:1px solid var(--brand);transition:.2s}
 .button:hover{background:var(--brand-dark);transform:translateY(-1px)}
 .button.secondary{background:transparent;color:var(--ink);border-color:#aebbb6}
@@ -102,6 +103,11 @@ a{color:inherit;text-decoration:none}
 .product-gallery{position:sticky;top:105px;min-width:0}
 .product-main-image{border-radius:24px;overflow:hidden;background:#f7f7f5;display:grid;place-items:center;aspect-ratio:1/1;padding:18px}
 .product-main-image img{width:100%;height:100%;object-fit:contain}
+.product-main-image{position:relative;touch-action:pan-y}
+.product-gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);font-size:30px;cursor:pointer}
+.product-gallery-arrow.previous{left:10px}
+.product-gallery-arrow.next{right:10px}
+.product-image-count{text-align:center;font-size:12px;color:var(--muted)}
 .product-thumbnails{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
 .product-thumbnails button{aspect-ratio:1/1;padding:6px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;overflow:hidden}
 .product-thumbnails button.active{border:2px solid var(--brand)}
@@ -176,3 +182,28 @@ a{color:inherit;text-decoration:none}
 .page-hero{padding:58px 0}
 .footer-grid{gap:28px}
 }
+
+@media(max-width:900px){
+  .menu-button{width:44px;height:44px;flex:none}
+  .menu{top:76px;max-height:calc(100dvh - 110px);overflow-y:auto;overscroll-behavior:contain;gap:5px}
+  .menu>a,.nav-group>a{min-height:44px;display:flex;align-items:center;padding:8px 0}
+  .nav-group{position:relative}
+  .nav-group>a{padding-right:52px}
+  .nav-chevron{display:none}
+  .mobile-submenu-toggle{position:absolute;right:0;top:0;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:8px;background:var(--cream);font-size:22px;color:var(--ink)}
+  .dropdown,.nav-group.wide .dropdown{display:none}
+  .nav-group.is-expanded .dropdown{display:grid}
+  .dropdown a{min-height:40px;display:flex;align-items:center}
+  body:has(.menu.is-open) .whatsapp{visibility:hidden}
+}
+@media(max-width:580px){
+  .nav{height:64px;gap:12px}
+  .menu{top:64px;left:14px;right:14px;max-height:calc(100dvh - 102px);padding:14px 18px}
+  .whatsapp{right:14px;bottom:max(14px,env(safe-area-inset-bottom));height:48px;width:48px;padding:0;border-radius:50%}
+  .whatsapp span{display:none}
+  .product-thumbnails{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding-bottom:4px}
+  .product-thumbnails button{flex:0 0 64px;scroll-snap-align:start;min-width:64px;min-height:64px}
+  input,select,textarea{font-size:16px}
+  .pagination a{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

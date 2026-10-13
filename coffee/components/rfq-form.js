@@ -30,7 +30,9 @@ export function RfqForm({ products, defaultProduct }) {
     useEffect(() => {
         try {
             const saved = window.localStorage.getItem(inquiryDraftStorageKey);
-            const inquiryItems = saved ? JSON.parse(saved) : [];
+            const stored = saved ? JSON.parse(saved) : [];
+            const inquiryItems = Array.isArray(stored) ? stored.filter(item => products.some(product => product.name === item.productName)) : [];
+            if(saved) window.localStorage.setItem(inquiryDraftStorageKey,JSON.stringify(inquiryItems));
             if (inquiryItems.length) {
                 setForm((current) => ({
                     ...current,

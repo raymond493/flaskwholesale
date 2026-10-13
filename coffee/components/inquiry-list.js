@@ -7,20 +7,24 @@ import { useCurrency } from "@/coffee/components/currency-provider";
 import { inquiryDraftStorageKey, inquiryEstimatedTotal, inquiryStorageKey } from "@/coffee/lib/inquiry";
 import { productCode } from "@/coffee/lib/catalog";
 const InquiryListContext = createContext(null);
-export function InquiryListProvider({ children }) {
+export function InquiryListProvider({ children, availableSlugs }) {
     const router = useRouter();
     const [items, setItems] = useState([]);
     const [open, setOpen] = useState(false);
     useEffect(() => {
         try {
             const saved = window.localStorage.getItem(inquiryStorageKey);
-            if (saved)
-                setItems(JSON.parse(saved));
+            if (saved) {
+                const stored = JSON.parse(saved);
+                const valid = Array.isArray(stored) ? stored.filter(item=>availableSlugs.includes(item.productSlug)) : [];
+                setItems(valid);
+                window.localStorage.setItem(inquiryStorageKey,JSON.stringify(valid));
+            }
         }
         catch {
             window.localStorage.removeItem(inquiryStorageKey);
         }
-    }, []);
+    }, [availableSlugs]);
     const persist = useCallback((next) => {
         setItems(next);
         window.localStorage.setItem(inquiryStorageKey, JSON.stringify(next));

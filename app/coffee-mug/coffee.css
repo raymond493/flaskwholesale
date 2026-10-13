@@ -11,3 +11,9 @@
 .coffee-site :where(h1,h2,h3) {letter-spacing:normal;}
 .coffee-site :where(.grid) {grid-template-columns:none;gap:0;}
 @media (max-width:767px) {body:has([data-mobile-inquiry-bar]) .whatsapp {bottom:100px;}}
+@media (max-width:767px) {
+  .coffee-site :where(input,select,textarea){font-size:16px;}
+  .coffee-site :where([aria-label="Next media"],[aria-label="Previous media"]){min-height:44px;min-width:44px;display:grid;place-items:center;}
+  .coffee-site :where([role="dialog"]){max-height:100dvh;}
+  body:has(.coffee-site [role="dialog"]) .whatsapp{visibility:hidden;}
+}

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 
 const menus = [
@@ -38,21 +39,46 @@ const menus = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+  const pathname = usePathname();
+  const historyNavigation = useRef(false);
+  useEffect(()=>{
+    const rememberHistory = ()=>{historyNavigation.current=true;};
+    window.addEventListener("popstate",rememberHistory);
+    return ()=>window.removeEventListener("popstate",rememberHistory);
+  },[]);
+  useEffect(() => {
+    setOpen(false);
+    setExpanded(null);
+    if(historyNavigation.current) {historyNavigation.current=false;return;}
+    if(window.location.hash) return;
+    const frame = requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:"instant"}));
+    return ()=>cancelAnimationFrame(frame);
+  },[pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    if (window.matchMedia("(max-width: 900px)").matches) document.body.style.overflow = "hidden";
+    const close = (event) => { if(event.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", close);
+    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", close); };
+  }, [open]);
   return <>
     <div className="topbar"><div className="container"><span>OEM & ODM stainless steel drinkware manufacturer</span><div className="topbar-links"><a href={site.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp {site.phone}</a><a href={`mailto:${site.email}`}>{site.email}</a></div></div></div>
     <header className="header"><div className="container nav">
-      <Link className="brand" href="/"><span className="brand-mark">F</span><span>FlaskWholesale</span></Link>
-      <button className="menu-button" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(!open)}>☰</button>
-      <nav className={`menu ${open ? "is-open" : ""}`}>
-        <Link href="/" onClick={() => setOpen(false)}>Home</Link>
-        <Link href="/coffee-mug" onClick={() => setOpen(false)}>Coffee Mug</Link>
-        {menus.map((menu) => <div className={`nav-group ${menu.columns.length > 1 ? "wide" : ""}`} key={menu.label}>
-          <Link href={menu.href} onClick={() => setOpen(false)}>{menu.label}<span className="nav-chevron">⌄</span></Link>
-          <div className="dropdown">{menu.columns.map((column) => <div key={column.title}><strong>{column.title}</strong>{column.links.map(([label, href]) => <Link href={href} onClick={() => setOpen(false)} key={href}>{label}</Link>)}</div>)}</div>
+      <Link prefetch={false} className="brand" href="/"><span className="brand-mark">F</span><span>FlaskWholesale</span></Link>
+      <button className="menu-button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="main-menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "×" : "☰"}</button>
+      <nav id="main-menu" aria-label="Main navigation" className={`menu ${open ? "is-open" : ""}`}>
+        <Link prefetch={false} href="/" onClick={() => setOpen(false)}>Home</Link>
+        <Link prefetch={false} href="/coffee-mug" onClick={() => setOpen(false)}>Coffee Mug</Link>
+        {menus.map((menu, index) => <div className={`nav-group ${menu.columns.length > 1 ? "wide" : ""} ${expanded === menu.label ? "is-expanded" : ""}`} key={menu.label}>
+          <Link prefetch={false} href={menu.href} onClick={() => setOpen(false)}>{menu.label}<span className="nav-chevron">⌄</span></Link>
+          <button type="button" className="mobile-submenu-toggle" aria-label={`${expanded === menu.label ? "Collapse" : "Expand"} ${menu.label}`} aria-expanded={expanded === menu.label} aria-controls={`submenu-${index}`} onClick={()=>setExpanded(expanded === menu.label ? null : menu.label)}>{expanded === menu.label ? "−" : "+"}</button>
+          <div id={`submenu-${index}`} className="dropdown">{menu.columns.map((column) => <div key={column.title}><strong>{column.title}</strong>{column.links.map(([label, href]) => <Link prefetch={false} href={href} onClick={() => setOpen(false)} key={href}>{label}</Link>)}</div>)}</div>
         </div>)}
-        <Link href="/contact-us" onClick={() => setOpen(false)}>Contact Us</Link>
+        <Link prefetch={false} href="/contact-us" onClick={() => setOpen(false)}>Contact Us</Link>
       </nav>
-      <Link className="button" href="/contact-us">Get a Quote</Link>
+      <Link prefetch={false} className="button" href="/contact-us">Get a Quote</Link>
     </div></header>
   </>;
 }
