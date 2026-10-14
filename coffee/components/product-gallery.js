@@ -5,12 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { optimizedImageUrl } from "@/coffee/lib/images";
 import { ResponsiveProductImage } from "./responsive-product-image";
 import { productGalleryMedia } from "@/coffee/lib/product-media";
-export function ProductGallery({ images, videoUrls = [], productName }) {
+export function ProductGallery({ images, videoUrls = [], videoPosterUrl, productName }) {
     const [active, setActive] = useState(0);
     const [zoomed, setZoomed] = useState(false);
     const touchStart = useRef(null);
     const swiped = useRef(false);
-    const media = useMemo(() => productGalleryMedia(images, videoUrls), [images, videoUrls]);
+    const media = useMemo(() => productGalleryMedia(images, videoUrls, videoPosterUrl), [images, videoUrls, videoPosterUrl]);
     const current = media[active] || media[0];
     useEffect(() => {
         function showColor(event) {

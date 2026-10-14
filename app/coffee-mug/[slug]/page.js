@@ -63,7 +63,7 @@ export default async function ProductPage({ params }) {
             <p className="mt-4 hidden whitespace-pre-line text-lg text-ink/75 md:block">{product.shortDescription || product.description}</p>
           </div>
           <div className="min-w-0 md:col-start-1 md:row-span-2 md:row-start-1">
-            <ProductGallery images={galleryImages} videoUrls={product.videoUrls} productName={product.name}/>
+            <ProductGallery images={galleryImages} videoUrls={product.videoUrls} videoPosterUrl={product.videoPosterUrl} productName={product.name}/>
           </div>
           <div className="flex min-w-0 flex-col md:col-start-2 md:row-start-2">
               <ProductQuoteConfigurator productId={product.id} productSlug={product.slug} productName={product.name} imageUrl={product.imageUrl} fromPriceLabel={product.fromPriceLabel} fromPriceAud={product.fromPriceAud} variants={product.variants} colors={product.colors} moq={product.moq}/>

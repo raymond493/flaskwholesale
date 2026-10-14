@@ -10,6 +10,7 @@ const media=productGalleryMedia(images,[native]);
 assert.deepEqual(media.map(m=>m.type),["image","video","image","image"]);
 assert.equal(media[1].url,native);
 assert.equal(media[1].poster,images[0].imageUrl);
+assert.equal(productGalleryMedia(images,[native],"dedicated-cover.jpg")[1].poster,"dedicated-cover.jpg");
 assert.deepEqual(media.filter(m=>m.type==="image").map(m=>m.image),images);
 assert.equal(productGalleryMedia(images,null).length,3);
 console.log("PASS: Sanity CDN video, YouTube compatibility, poster, video second, image order, nullable inputs and rejected non-CDN URLs.");

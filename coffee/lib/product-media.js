@@ -11,10 +11,10 @@ export function productVideo(url, poster) {
   return null;
 }
 
-export function productGalleryMedia(images, videoUrls) {
+export function productGalleryMedia(images, videoUrls, videoPosterUrl) {
   const entries = images.map(image=>({type:"image",image}));
   const videos = (videoUrls ?? []).flatMap(url=>{
-    const video=productVideo(url,images[0]?.imageUrl);
+    const video=productVideo(url,videoPosterUrl || images[0]?.imageUrl);
     return video ? [video] : [];
   });
   entries.splice(Math.min(1,entries.length),0,...videos);
