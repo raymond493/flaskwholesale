@@ -4,20 +4,13 @@ import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { optimizedImageUrl } from "@/coffee/lib/images";
 import { ResponsiveProductImage } from "./responsive-product-image";
+import { productGalleryMedia } from "@/coffee/lib/product-media";
 export function ProductGallery({ images, videoUrls = [], productName }) {
     const [active, setActive] = useState(0);
     const [zoomed, setZoomed] = useState(false);
     const touchStart = useRef(null);
     const swiped = useRef(false);
-    const media = useMemo(() => {
-        const entries = images.map((image) => ({ type: "image", image }));
-        const videos = (videoUrls ?? []).flatMap((url) => {
-            const videoId = youtubeVideoId(url);
-            return videoId ? [{ type: "video", url, videoId }] : [];
-        });
-        entries.splice(Math.min(1, entries.length), 0, ...videos);
-        return entries;
-    }, [images, videoUrls]);
+    const media = useMemo(() => productGalleryMedia(images, videoUrls), [images, videoUrls]);
     const current = media[active] || media[0];
     useEffect(() => {
         function showColor(event) {
@@ -60,7 +53,7 @@ export function ProductGallery({ images, videoUrls = [], productName }) {
             touchStart.current = null;
         }}>
         {current?.type === "video" ? (<div className="flex h-full items-center justify-center bg-slate-950 p-4">
-            <iframe src={youtubeEmbedUrl(current.videoId)} title={productName + " product video"} className="aspect-[9/16] h-full max-h-full w-auto max-w-full rounded-md" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>
+            {current.provider === "sanity" ? <video key={current.url} src={current.url} poster={current.poster ? optimizedImageUrl(current.poster,800,78) : undefined} controls preload="none" playsInline aria-label={productName + " product video"} className="h-full w-full rounded-md object-contain"/> : <iframe key={current.url} src={youtubeEmbedUrl(current.videoId)} title={productName + " product video"} className="aspect-[9/16] h-full max-h-full w-auto max-w-full rounded-md" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>}
           </div>) : current ? (<>
             <button type="button" onClick={() => { if (!swiped.current)
             setZoomed(true); swiped.current = false; }} className="absolute inset-0 z-10 cursor-zoom-in" aria-label="Open larger product image"/>
@@ -75,7 +68,7 @@ export function ProductGallery({ images, videoUrls = [], productName }) {
       {media.length > 1 ? (<div className="mt-2 flex w-full max-w-full gap-2 overflow-x-auto pb-2 sm:mt-3 sm:gap-3" aria-label="Product media">
           {media.map((entry, index) => (<button type="button" key={(entry.type === "image" ? entry.image.imageUrl : entry.url) + "-" + index} onClick={() => { setActive(index); setZoomed(false); }} aria-label={entry.type === "video" ? "Play product video" : "View product image " + (index + 1)} className={"relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 bg-[#f7f7f7] sm:size-20 " + (index === active ? "border-emerald-700" : "border-transparent")}>
               {entry.type === "video" ? (<span className="relative h-full w-full overflow-hidden bg-[#f7f7f7]">
-                  <Image src={youtubeThumbnailUrl(entry.videoId)} alt={productName + " video preview"} fill unoptimized sizes="80px" className="object-cover"/>
+                  {entry.provider === "youtube" || entry.poster ? <Image src={entry.provider === "sanity" ? optimizedImageUrl(entry.poster,180,72) : youtubeThumbnailUrl(entry.videoId)} alt={productName + " video preview"} fill unoptimized sizes="80px" className="object-cover"/> : null}
                   <span className="absolute inset-0 bg-black/15"/>
                   <span className="absolute inset-0 flex items-center justify-center">
                     <span className="flex size-10 items-center justify-center rounded-full bg-white/95 text-slate-950 shadow-md">
@@ -98,9 +91,6 @@ export function ProductGallery({ images, videoUrls = [], productName }) {
             </>) : null}
         </div>) : null}
     </div>);
-}
-function youtubeVideoId(url) {
-    return url.match(/(?:youtube\.com\/(?:shorts\/|watch\?v=)|youtu\.be\/)([\w-]{11})/)?.[1];
 }
 function youtubeEmbedUrl(videoId) {
     return "https://www.youtube-nocookie.com/embed/" + videoId + "?rel=0";
