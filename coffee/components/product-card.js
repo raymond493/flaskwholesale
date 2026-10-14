@@ -12,7 +12,7 @@ export function ProductCard({ product, priority = false }) {
     return (<article className="group overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/coffee-mug/${product.slug}`} prefetch={false} className="group block">
         <div className="relative aspect-square overflow-hidden bg-[#f7f7f7]">
-          <ResponsiveProductImage src={product.imageUrl} alt={product.name} priority={priority} sizes="(min-width: 1280px) 300px, (min-width: 768px) 30vw, (min-width: 640px) calc(50vw - 24px), calc(100vw - 32px)" className="object-contain p-1 sm:p-3 transition duration-300 group-hover:scale-105"/>
+          <ResponsiveProductImage src={product.imageUrl} alt={product.name} priority={priority} sizes="(min-width: 1280px) 300px, (min-width: 768px) 30vw, calc(50vw - 20px)" className="object-contain p-0 sm:p-3 transition duration-300 group-hover:scale-105"/>
         </div>
       </Link>
       <div className="space-y-3 p-3 md:p-4">
