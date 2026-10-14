@@ -113,7 +113,7 @@ export function RfqForm({ products, defaultProduct }) {
           </select>
         </Field> : null}
         {!form.inquiryItems?.length ? <Field label="Quantity" error={errors.quantity}>
-          <input value={form.quantity} onChange={(event) => updateField("quantity", event.target.value)} placeholder="e.g. 5,000" className="w-full rounded-md border border-black/15 px-3 py-2"/>
+          <input value={form.quantity} onChange={(event) => updateField("quantity", event.target.value)} className="w-full rounded-md border border-black/15 px-3 py-2"/>
         </Field> : null}
         <Field label="Name" error={errors.name}>
           <input value={form.name} onChange={(event) => updateField("name", event.target.value)} className="w-full rounded-md border border-black/15 px-3 py-2"/>
