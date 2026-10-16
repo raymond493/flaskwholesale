@@ -13,5 +13,5 @@ export const coffeeProduct=defineType({name:"coffeeProduct",title:"Coffee Mug",t
   defineField({name:"collectionRanks",type:"array",of:[{type:"object",fields:[{name:"slug",type:"string"},{name:"position",type:"number"}]}]})
 ],preview:{select:{title:"name"}}});
 export const coffeeCustomization=defineType({name:"coffeeCustomization",title:"Coffee Mug Customization",type:"document",fields:[
-  {name:"heading",type:"string"},{name:"intro",type:"text"},{name:"options",type:"array",of:[{type:"object",fields:[{name:"title",type:"string"},{name:"slug",type:"string"},{name:"description",type:"text"},{name:"imageUrl",type:"url"},{name:"alt",type:"string"},{name:"galleryImages",type:"array",of:[{type:"object",fields:[{name:"alt",type:"string"},{name:"imageUrl",type:"url"}]}]}]}]}
+  {name:"heading",type:"string"},{name:"intro",type:"text"},{name:"options",type:"array",of:[{type:"object",fields:[{name:"title",type:"string"},{name:"slug",type:"string"},{name:"description",type:"text"},{name:"imageUrl",type:"url"},{name:"alt",type:"string"},{name:"videoUrl",type:"url"},{name:"videoPosterUrl",type:"url"},{name:"galleryImages",type:"array",of:[{type:"object",fields:[{name:"alt",type:"string"},{name:"imageUrl",type:"url"}]}]}]}]}
 ],preview:{select:{title:"heading"}}});

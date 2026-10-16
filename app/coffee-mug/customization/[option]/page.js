@@ -46,6 +46,17 @@ export default async function TumblerCustomizationPage({ params }) {
         </div>
       </section>
 
+      {card?.videoUrl ? <section id="production-video" className="border-t border-slate-200 bg-white py-12 sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-emerald-700">Production video</p>
+          <h2 className="mt-2 text-3xl font-extrabold">{page.title} in production</h2>
+          <p className="mt-3 text-slate-600">Watch the process. Tap play to start the video.</p>
+          <div className="mx-auto mt-8 w-full max-w-sm">
+            <video src={card.videoUrl} poster={card.videoPosterUrl ? optimizedImageUrl(card.videoPosterUrl,720,78) : undefined} controls playsInline preload="none" aria-label={`${page.title} production video`} className="aspect-[9/16] w-full rounded-lg bg-slate-950 object-contain" />
+          </div>
+        </div>
+      </section> : null}
+
       {card?.galleryImages?.length ? (<section className="border-t border-slate-200 bg-[#f6f7f5] py-14">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-emerald-700">Production examples</p>
