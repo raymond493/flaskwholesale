@@ -17,6 +17,8 @@ The site uses shared React components, centralized product data, dynamic product
 
 Quotes open WhatsApp `+86 13267102135` with a prepared message. Visitors must send the message and attach artwork themselves; opening WhatsApp is not confirmation of a received inquiry. Original Ecopak payment credentials are not copied.
 
+Email delivery is approved but pending the owner's provider configuration. No mail sending endpoint or credentials are enabled yet. `coffee/lib/rfq-message.js` prepares shared plain-text/HTML messages with stable model codes in the subject, a deduplicated Model / SKU summary immediately after Reference, and model codes on each product line. Product identity uses the canonical slug; legacy name-only entries resolve only on one exact catalog match. Run `node scripts/test-rfq-message.mjs` to test formatting without sending messages.
+
 Initial import (does not overwrite existing Coffee Mug edits): run `sanity exec scripts/import-coffee-mugs.mjs --with-user-token` inside `sanity-studio`.
 
 Products with `isActive: false` are excluded from collection pages, detail routes, related products, quote options and sitemap. CM-10 is offline; its document and images are retained. Existing browser inquiry drafts are filtered against available products.

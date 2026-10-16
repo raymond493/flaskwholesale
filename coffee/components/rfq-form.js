@@ -6,8 +6,10 @@ import { inquiryDraftStorageKey, inquiryQuantityTotal } from "@/coffee/lib/inqui
 import { useInquiryList } from "@/coffee/components/inquiry-list";
 import { productCode } from "@/coffee/lib/catalog";
 import { useCurrency } from "@/coffee/components/currency-provider";
+import { buildRfqMessage, resolveRfqProduct } from "@/coffee/lib/rfq-message";
 const emptyForm = {
     productName: "",
+    productSlug: "",
     name: "",
     email: "",
     company: "",
@@ -22,7 +24,8 @@ export function RfqForm({ products, defaultProduct }) {
     const { currency, formatUsdAmount } = useCurrency();
     const [form, setForm] = useState({
         ...emptyForm,
-        productName: defaultProduct?.name || ""
+        productName: defaultProduct?.name || "",
+        productSlug: defaultProduct?.slug || ""
     });
     const [status, setStatus] = useState("idle");
     const [receipt, setReceipt] = useState(null);
@@ -31,12 +34,13 @@ export function RfqForm({ products, defaultProduct }) {
         try {
             const saved = window.localStorage.getItem(inquiryDraftStorageKey);
             const stored = saved ? JSON.parse(saved) : [];
-            const inquiryItems = Array.isArray(stored) ? stored.filter(item => products.some(product => product.name === item.productName)) : [];
+            const inquiryItems = Array.isArray(stored) ? stored.map(item=>({...item,...resolveRfqProduct(item,products)})).filter(item=>item.found) : [];
             if(saved) window.localStorage.setItem(inquiryDraftStorageKey,JSON.stringify(inquiryItems));
             if (inquiryItems.length) {
                 setForm((current) => ({
                     ...current,
                     productName: inquiryItems.map((item) => item.productName).join(", "),
+                    productSlug: "",
                     selectedOption: inquiryItems.map((item) => `${item.productName}: ${item.selectedOption}`).join("\n"),
                     unitPrice: "See bulk inquiry list",
                     quantity: String(inquiryQuantityTotal(inquiryItems)),
@@ -48,7 +52,7 @@ export function RfqForm({ products, defaultProduct }) {
             window.localStorage.removeItem(inquiryDraftStorageKey);
         }
         function applySelection(event) {
-            const selection = event.detail;
+            const selection = {...event.detail,...resolveRfqProduct(event.detail,products)};
             setForm((current) => ({ ...current, ...selection }));
             setErrors((current) => ({ ...current, productName: undefined, quantity: undefined }));
         }
@@ -65,9 +69,9 @@ export function RfqForm({ products, defaultProduct }) {
         if (!validation.ok) {
             return;
         }
-        const lines = ["FlaskWholesale coffee mug inquiry", ...Object.entries(form).filter(([key, value]) => value && !["artwork", "inquiryItems"].includes(key)).map(([key, value]) => key + ": " + value), ...(form.inquiryItems || []).map(item => item.productName + " · " + item.selectedOption + " · " + item.quantity + " units"), form.artwork ? "Artwork: " + form.artwork.name + " (I will attach it in WhatsApp)" : ""].filter(Boolean);
-        window.open("https://wa.me/8613267102135?text=" + encodeURIComponent(lines.join("\n")), "_blank", "noopener,noreferrer");
-        setReceipt({ reference: "Continue in WhatsApp", items: form.inquiryItems || [], product: form.productName, quantity: form.quantity });
+        const message = buildRfqMessage(form,products,{reference:"FW-"+crypto.randomUUID().slice(0,8).toUpperCase()});
+        window.open("https://wa.me/8613267102135?text=" + encodeURIComponent(message.text), "_blank", "noopener,noreferrer");
+        setReceipt({ reference:message.reference, modelSummary:message.modelSummary, items: form.inquiryItems || [], product: form.productName, quantity: form.quantity });
         setStatus("sent");
     }
     async function attachArtwork(file) {
@@ -105,10 +109,10 @@ export function RfqForm({ products, defaultProduct }) {
             {form.unitPrice ? <p className="mt-1 text-sm text-slate-600">{form.unitPrice}</p> : null}
           </div>) : null}
         {!form.inquiryItems?.length ? <Field label="Product" error={errors.productName}>
-          <select value={form.productName} onChange={(event) => setForm((current) => ({ ...current, productName: event.target.value, selectedOption: undefined, unitPrice: undefined, inquiryItems: undefined }))} className="w-full rounded-md border border-black/15 bg-white px-3 py-2">
+          <select name="productSlug" value={form.productSlug || ""} onChange={(event) => {const product=products.find(p=>p.slug===event.target.value);setForm((current)=>({...current,productName:product?.name||"",productSlug:product?.slug||"",selectedOption:undefined,unitPrice:undefined,inquiryItems:undefined}));}} className="w-full rounded-md border border-black/15 bg-white px-3 py-2">
             <option value="">Choose a product</option>
-            {products.map((product) => (<option key={product.id} value={product.name}>
-                {product.name}
+            {products.map((product) => (<option key={product.id} value={product.slug}>
+                {[productCode(product.slug),product.name].filter(Boolean).join(" ")}
               </option>))}
           </select>
         </Field> : null}
@@ -149,7 +153,7 @@ export function RfqForm({ products, defaultProduct }) {
         {status === "sending" ? "Sending..." : "Continue on WhatsApp"}
       </button>
 
-      {status === "sent" && receipt ? <div role="status" className="mt-5 rounded-xl bg-white p-5"><p className="font-semibold text-eucalyptus">Your inquiry is ready. Please send it in WhatsApp.</p><p className="mt-2 text-sm">Reference: {receipt.reference}</p>{receipt.items.length ? <ul className="mt-3 space-y-2 text-sm">{receipt.items.map((item) => <li key={item.id}>{[productCode(item.productSlug), item.productName].filter(Boolean).join(" · ")} · {item.selectedOption} · {item.quantity} units</li>)}</ul> : <p className="mt-3 text-sm">{receipt.product} · {receipt.quantity} units</p>}</div> : null}
+      {status === "sent" && receipt ? <div role="status" className="mt-5 rounded-xl bg-white p-5"><p className="font-semibold text-eucalyptus">Your inquiry is ready. Please send it in WhatsApp.</p><p className="mt-2 text-sm">Reference: {receipt.reference}<br/>Model / SKU: {receipt.modelSummary}</p>{receipt.items.length ? <ul className="mt-3 space-y-2 text-sm">{receipt.items.map((item) => <li key={item.id}>{[productCode(item.productSlug), item.productName].filter(Boolean).join(" · ")} · {item.selectedOption} · {item.quantity} units</li>)}</ul> : <p className="mt-3 text-sm">{receipt.product} · {receipt.quantity} units</p>}</div> : null}
       {status === "error" ? <p className="mt-4 font-semibold text-red-700">Something went wrong. Please email raymond@mategourdwholesale.com.</p> : null}
     </form>);
 }

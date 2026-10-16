@@ -2,6 +2,7 @@ import { defineType, defineField } from "sanity";
 const textFields=["description","shortDescription","specificationsText","faqText","detailText"];
 export const coffeeProduct=defineType({name:"coffeeProduct",title:"Coffee Mug",type:"document",fields:[
   defineField({name:"isActive",title:"Available on website",type:"boolean",initialValue:true,description:"Turn off to take this product offline without deleting its data."}),
+  defineField({name:"order",title:"Global display order",type:"number"}),
   defineField({name:"sourceUpdatedAt",title:"Source update date",type:"datetime",readOnly:true,hidden:true}),
   defineField({name:"videoPosterUrl",title:"Video cover — Sanity CDN URL",type:"url"}),
   defineField({name:"name",title:"Product name",type:"string"}),defineField({name:"slug",type:"string"}),defineField({name:"eyebrow",type:"string"}),
