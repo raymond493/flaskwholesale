@@ -1,10 +1,37 @@
 "use client";
-import { createContext, useContext, useMemo } from "react";
-import { convertFromAud, fallbackCurrencyRates } from "../lib/currency";
+import { createContext, useContext, useMemo, useState, useEffect } from "react";
+import { convertFromAud, convertFromUsd, completeCurrencyRates, fallbackCurrencyRates, preferredCurrency, supportedCurrencies, isSupportedCurrency } from "../lib/currency";
 import { formatCurrency } from "../lib/money";
 const Context = createContext(null);
+const preferenceKey="flaskwholesale-currency-preference";
+const rateKey="flaskwholesale-currency-rates";
 export function CurrencyProvider({children}) {
-  const value = useMemo(()=>({currency:"USD",rates:fallbackCurrencyRates,formatUsdAmount:(n)=>formatCurrency(n,"USD"),formatAudAmount:(n)=>formatCurrency(convertFromAud(n,"USD",fallbackCurrencyRates),"USD")}),[]);
+  const [currency,setCurrency]=useState("USD");
+  const [rates,setRates]=useState(fallbackCurrencyRates);
+  useEffect(()=>{
+    function readPreference(){
+      let saved;try{saved=localStorage.getItem(preferenceKey);}catch{}
+      const next=preferredCurrency(window.location.search,saved);setCurrency(next);
+      try{localStorage.setItem(preferenceKey,next);}catch{}
+    }
+    readPreference();window.addEventListener("popstate",readPreference);
+    try{
+      const cached=JSON.parse(localStorage.getItem(rateKey)||"null");
+      const valid=cached?.expiresAt>Date.now();
+      const next=completeCurrencyRates(valid?cached.rates:fallbackCurrencyRates);setRates(next);
+      localStorage.setItem(rateKey,JSON.stringify({rates:next,expiresAt:valid?cached.expiresAt:Date.now()+12*60*60*1000}));
+    }catch{}
+    return()=>window.removeEventListener("popstate",readPreference);
+  },[]);
+  const value = useMemo(()=>({currency,rates,selectCurrency:(next)=>{
+    if(!isSupportedCurrency(next))return;setCurrency(next);
+    try{localStorage.setItem(preferenceKey,next);}catch{}
+    const url=new URL(window.location.href);url.searchParams.set("currency",next);window.history.replaceState(null,"",url);
+  },formatUsdAmount:(n)=>formatCurrency(convertFromUsd(n,currency,rates),currency),formatAudAmount:(n)=>formatCurrency(convertFromAud(n,currency,rates),currency)}),[currency,rates]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function useCurrency() { return useContext(Context); }
+export function CurrencySelector(){
+  const {currency,selectCurrency}=useCurrency();
+  return <label className="flex items-center gap-2 text-sm"><span>Currency</span><select aria-label="Currency" value={currency} onChange={event=>selectCurrency(event.target.value)} className="rounded-md border border-slate-200 bg-white px-2 py-2 text-base">{supportedCurrencies.map(code=><option key={code} value={code}>{code}</option>)}</select></label>;
+}

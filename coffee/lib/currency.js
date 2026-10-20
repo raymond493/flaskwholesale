@@ -1,9 +1,17 @@
-export const supportedCurrencies = ["USD", "EUR", "AUD"];
+export const supportedCurrencies = ["USD", "EUR", "AUD", "GBP"];
 export const fallbackCurrencyRates = {
     AUD: 1,
     USD: 0.6939,
-    EUR: 0.60702
+    EUR: 0.60702,
+    GBP: 0.5226
 };
+export function completeCurrencyRates(rates = {}) {
+    return Object.fromEntries(supportedCurrencies.map(code=>[code,code === "AUD" ? 1 : typeof rates?.[code] === "number" && Number.isFinite(rates[code]) && rates[code] > 0 ? rates[code] : fallbackCurrencyRates[code]]));
+}
+export function preferredCurrency(search,saved) {
+    const linked = new URLSearchParams(search).get("currency")?.toUpperCase();
+    return isSupportedCurrency(linked) ? linked : isSupportedCurrency(saved) ? saved : "USD";
+}
 const eurozoneCountries = new Set([
     "AT", "BE", "BG", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV",
     "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"
@@ -20,8 +28,9 @@ export function currencyForCountry(countryCode) {
     return "USD";
 }
 export function convertFromAud(amountAud, currency, rates) {
-    return Number((amountAud * rates[currency]).toFixed(2));
+    return Number((amountAud * completeCurrencyRates(rates)[currency]).toFixed(2));
 }
 export function convertFromUsd(amountUsd, currency, rates) {
-    return Number(((amountUsd / rates.USD) * rates[currency]).toFixed(2));
+    const complete = completeCurrencyRates(rates);
+    return Number(((amountUsd / complete.USD) * complete[currency]).toFixed(2));
 }
