@@ -68,7 +68,7 @@ export function ProductQuoteConfigurator({ productId, productSlug, productName, 
           <div className="mt-3 grid max-h-[25rem] grid-cols-2 gap-2 overflow-y-auto sm:pr-1">
             {options.map((option) => {
                 const active = option.id === selected?.id;
-                const label = ["280ml-380ml-double-wall-insulated-coffee-tumbler", "second-generation-380ml-510ml-stainless-steel-coffee-tumbler"].includes(productSlug) ? splitVariantLabel(option.label) : {primary:option.label,secondary:""};
+                const label = ["12oz-stainless-steel-insulated-milk-mug-with-inner-scale", "280ml-380ml-double-wall-insulated-coffee-tumbler", "second-generation-380ml-510ml-stainless-steel-coffee-tumbler"].includes(productSlug) ? splitVariantLabel(option.label) : {primary:option.label,secondary:""};
                 return (<button key={option.id} type="button" aria-pressed={active} onClick={() => chooseOption(option.id)} className={`relative min-h-[5rem] rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 sm:p-4 ${active ? "border-emerald-800 bg-emerald-50/60 shadow-sm" : "border-slate-200 bg-white hover:border-slate-400"}`}>
                   {active ? <Check className="absolute right-3 top-3 text-emerald-800" size={18} aria-hidden="true"/> : null}
                   <span className="block pr-7 text-base font-bold text-slate-950">{label.primary}{label.secondary ? <span className="ml-1 inline-block text-xs font-normal text-slate-500">{label.secondary}</span> : null}</span>

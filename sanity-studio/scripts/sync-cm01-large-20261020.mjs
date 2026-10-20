@@ -1,0 +1,24 @@
+import assert from "node:assert/strict";
+import {createClient} from "@sanity/client";
+import {getCliClient} from "sanity/cli";
+const slug="12oz-stainless-steel-insulated-milk-mug-with-inner-scale";
+const source=createClient({projectId:"rbq1eoim",dataset:"ecopak-coffee-cups-production",apiVersion:"2026-10-20",useCdn:false,timeout:20000,maxRetries:0});
+const target=getCliClient({apiVersion:"2026-10-20"});
+const before=await target.fetch('*[_type=="coffeeProduct"]');
+const old=before.find(p=>p.slug===slug);assert.ok(old);
+const original=await source.fetch('*[_id=="product-"+$slug][0]{name,variants,fromPriceLabel,videoUrls,"imageUrl":coalesce(mainImage.asset->url,imageUrl),"galleryImages":galleryImages[]{_key,alt,"imageUrl":image.asset->url}}',{slug});
+assert.equal(original.name,"12oz / 16oz Stainless Steel Insulated Coffee Mug with Inner Scale");
+assert.equal(original.fromPriceLabel,"US$2.58-3.52 / pc EXW");
+assert.equal(original.variants.length,2);assert.equal(original.variants[0].priceUsd,2.58);assert.equal(original.variants[1].priceUsd,3.52);
+assert.equal(original.variants[1].size,"16oz (500ml)");
+assert.equal(original.imageUrl,old.imageUrl);assert.deepEqual(original.videoUrls,old.videoUrls);
+assert.equal(original.galleryImages.length,15);assert.equal(original.galleryImages[0].imageUrl,old.imageUrl);
+for(const image of old.galleryImages)assert.ok(original.galleryImages.some(p=>p.imageUrl===image.imageUrl),"Old image missing");
+const fields={name:original.name,variants:original.variants,fromPriceLabel:original.fromPriceLabel,galleryImages:original.galleryImages};
+await target.patch(old._id).ifRevisionId(old._rev).set(fields).commit();
+const after=await target.fetch('*[_type=="coffeeProduct"]');assert.equal(after.length,before.length);
+for(const previous of before){const saved=after.find(p=>p._id===previous._id);assert.ok(saved);
+  for(const key of Object.keys(previous).filter(k=>!["_rev","_updatedAt",...(previous._id===old._id?Object.keys(fields):[])].includes(k)))assert.deepEqual(saved[key],previous[key],previous.slug+": unrelated field "+key);
+  if(previous._id===old._id)for(const [key,value]of Object.entries(fields))assert.deepEqual(saved[key],value);
+}
+console.log(JSON.stringify({verified:true,images:15,media7:original.galleryImages[5].imageUrl,variants:original.variants.map(v=>({size:v.size,price:v.priceUsd})),mainVideoAndOtherProductsUnchanged:true}));
