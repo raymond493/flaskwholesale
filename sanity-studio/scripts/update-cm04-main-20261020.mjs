@@ -1,0 +1,24 @@
+import assert from "node:assert/strict";
+import {createClient} from "@sanity/client";
+import {getCliClient} from "sanity/cli";
+const slug="280ml-380ml-double-wall-insulated-coffee-tumbler";
+const imageUrl="https://cdn.sanity.io/images/rbq1eoim/ecopak-coffee-cups-production/3f9d49b4eb4ef850491f489e5c1c55a034a71b50-1254x1254.png";
+const source=createClient({projectId:"rbq1eoim",dataset:"ecopak-coffee-cups-production",apiVersion:"2026-10-20",useCdn:false,timeout:20000,maxRetries:0});
+const target=getCliClient({apiVersion:"2026-10-20"});
+const before=await target.fetch('*[_type=="coffeeProduct"]');
+const old=before.find(p=>p.slug===slug);assert.ok(old);
+const original=await source.fetch('*[_type=="product" && slug.current==$slug][0]{"imageUrl":coalesce(mainImage.asset->url,imageUrl),videoPosterUrl,videoUrls,"galleryImages":galleryImages[]{_key,alt,"imageUrl":image.asset->url}}',{slug});
+assert.equal(original.imageUrl,imageUrl);assert.equal(original.videoPosterUrl,imageUrl);
+assert.deepEqual(original.videoUrls,old.videoUrls);assert.equal(original.galleryImages.length,22);
+assert.equal(original.galleryImages[0].imageUrl,imageUrl);
+for(const entry of old.galleryImages)assert.ok(original.galleryImages.some(p=>p.imageUrl===entry.imageUrl),"Missing previous image");
+const oldOrder=old.galleryImages.map(p=>p.imageUrl).filter(url=>url!==imageUrl&&url!==old.imageUrl);
+assert.deepEqual(original.galleryImages.map(p=>p.imageUrl).filter(url=>oldOrder.includes(url)),oldOrder,"Existing relative order changed");
+const fields={imageUrl,videoPosterUrl:imageUrl,galleryImages:original.galleryImages};
+await target.patch(old._id).ifRevisionId(old._rev).set(fields).commit();
+const after=await target.fetch('*[_type=="coffeeProduct"]');assert.equal(after.length,before.length);
+for(const previous of before){const saved=after.find(p=>p._id===previous._id);assert.ok(saved);
+  for(const key of Object.keys(previous).filter(k=>!["_rev","_updatedAt",...(previous._id===old._id?Object.keys(fields):[])].includes(k)))assert.deepEqual(saved[key],previous[key],previous.slug+": unrelated field "+key);
+  if(previous._id===old._id)for(const [key,value]of Object.entries(fields))assert.deepEqual(saved[key],value);
+}
+console.log("PASS: CM04 main image and video poster updated; 22 images retained in source order; prices, variants, video URLs and other products unchanged.");

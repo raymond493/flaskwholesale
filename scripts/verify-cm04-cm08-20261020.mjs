@@ -17,9 +17,9 @@ for(const plan of plans){
   for(const label of plan.sizes){const {primary,secondary}=splitVariantLabel(label);assert.ok(html.includes(primary+"<span"),"oz primary missing");assert.ok(html.includes('text-xs font-normal text-slate-500">'+secondary),"ml secondary missing");
     assert.ok(buildRfqMessage({productSlug:p.slug,selectedOption:label,quantity:100},[p]).text.includes("Option: "+label));
   }
-  if(plan===plans[0]){assert.equal(p.galleryImages.length,21);assert.equal(p.galleryImages[0].imageUrl,p.imageUrl);assert.equal(p.fromPriceLabel,"US$2.75-3.29 / pc EXW");
+  if(plan===plans[0]){assert.equal(p.galleryImages.length,22);assert.equal(p.galleryImages[0].imageUrl,p.imageUrl);assert.equal(p.videoPosterUrl,p.imageUrl);assert.ok(p.imageUrl.endsWith("3f9d49b4eb4ef850491f489e5c1c55a034a71b50-1254x1254.png"));assert.equal(p.fromPriceLabel,"US$2.75-3.29 / pc EXW");
     const media=productGalleryMedia(p.galleryImages,p.videoUrls,p.videoPosterUrl);assert.equal(media[1].type,"video");
-    assert.equal((html.match(/aria-label="View product image \d+"/g)||[]).length,21);
+    assert.equal((html.match(/aria-label="View product image \d+"/g)||[]).length,22);
   }
-  console.log("PASS "+plan.slug+": prices, sizes, secondary ml, full inquiry text"+(plan===plans[0]?", 21 images and video second":""));
+  console.log("PASS "+plan.slug+": prices, sizes, secondary ml, full inquiry text"+(plan===plans[0]?", 22 images, new main/poster and video second":""));
 }
