@@ -5,6 +5,7 @@ import { convertFromAud } from "@/coffee/lib/currency";
 import { Check, ClipboardPlus, Minus, Plus } from "lucide-react";
 import { cleanVariantName, formatUsd, getBasePriceRangeUsd, getVariantPriceUsd } from "@/coffee/lib/product-pricing";
 import { useInquiryList } from "@/coffee/components/inquiry-list";
+import { splitVariantLabel } from "@/coffee/lib/variant-label";
 export function ProductQuoteConfigurator({ productId, productSlug, productName, imageUrl, fromPriceLabel, fromPriceAud, variants, colors = [], moq }) {
     const { addItem } = useInquiryList();
     const { rates, currency, formatAudAmount, formatUsdAmount } = useCurrency();
@@ -67,9 +68,10 @@ export function ProductQuoteConfigurator({ productId, productSlug, productName, 
           <div className="mt-3 grid max-h-[25rem] grid-cols-2 gap-2 overflow-y-auto sm:pr-1">
             {options.map((option) => {
                 const active = option.id === selected?.id;
+                const label = ["280ml-380ml-double-wall-insulated-coffee-tumbler", "second-generation-380ml-510ml-stainless-steel-coffee-tumbler"].includes(productSlug) ? splitVariantLabel(option.label) : {primary:option.label,secondary:""};
                 return (<button key={option.id} type="button" aria-pressed={active} onClick={() => chooseOption(option.id)} className={`relative min-h-[5rem] rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 sm:p-4 ${active ? "border-emerald-800 bg-emerald-50/60 shadow-sm" : "border-slate-200 bg-white hover:border-slate-400"}`}>
                   {active ? <Check className="absolute right-3 top-3 text-emerald-800" size={18} aria-hidden="true"/> : null}
-                  <span className="block pr-7 text-base font-bold text-slate-950">{option.label}</span>
+                  <span className="block pr-7 text-base font-bold text-slate-950">{label.primary}{label.secondary ? <span className="ml-1 inline-block text-xs font-normal text-slate-500">{label.secondary}</span> : null}</span>
                   <span className="mt-2 block text-sm text-slate-500">
                     {typeof fromPriceAud === "number" || typeof option.priceUsd === "number" || fromPriceLabel ? <span className="mr-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">EXW</span> : null}
                     {typeof fromPriceAud === "number" ? formatAudAmount(fromPriceAud) : typeof option.priceUsd === "number" ? formatUsdAmount(option.priceUsd) : fromPriceLabel || "Price on request"}
