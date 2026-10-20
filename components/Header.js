@@ -66,7 +66,7 @@ export default function Header() {
   return <>
     <div className="topbar"><div className="container"><span>OEM & ODM stainless steel drinkware manufacturer</span><div className="topbar-links"><a href={site.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp {site.phone}</a><a href={`mailto:${site.email}`}>{site.email}</a></div></div></div>
     <header className="header"><div className="container nav">
-      <Link prefetch={false} className="brand" href="/"><span className="brand-mark">F</span><span>FlaskWholesale</span></Link>
+      <Link prefetch={false} className="brand" href="/" aria-label="FlaskWholesale home"><img className="brand-logo" src="/brand/flaskwholesale-logo-v1.webp" alt="FlaskWholesale" width="800" height="165" fetchPriority="high" /></Link>
       <button className="menu-button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="main-menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "×" : "☰"}</button>
       <nav id="main-menu" aria-label="Main navigation" className={`menu ${open ? "is-open" : ""}`}>
         <Link prefetch={false} href="/" onClick={() => setOpen(false)}>Home</Link>
