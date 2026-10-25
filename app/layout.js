@@ -1,5 +1,6 @@
 import "@/src/styles.css";
 import "@/src/content.css";
+import "@/src/recent-work.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { site } from "@/lib/site";
