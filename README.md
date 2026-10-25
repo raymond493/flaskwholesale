@@ -17,7 +17,11 @@ The site uses shared React components, centralized product data, dynamic product
 
 Quotes open WhatsApp `+86 13267102135` with a prepared message. Visitors must send the message and attach artwork themselves; opening WhatsApp is not confirmation of a received inquiry. Original Ecopak payment credentials are not copied.
 
-Email delivery is approved but pending the owner's provider configuration. No mail sending endpoint or credentials are enabled yet. `coffee/lib/rfq-message.js` prepares shared plain-text/HTML messages with stable model codes in the subject, a deduplicated Model / SKU summary immediately after Reference, and model codes on each product line. Product identity uses the canonical slug; legacy name-only entries resolve only on one exact catalog match. Run `node scripts/test-rfq-message.mjs` to test formatting without sending messages.
+Email RFQ is implemented at `/api/rfq` for coffee single/bulk inquiries and the Contact form. Enable it with Flask-specific `RESEND_API_KEY`, `RFQ_FROM_EMAIL` (a verified Resend sender) and `RFQ_NOTIFY_EMAIL` in Vercel, then redeploy. No EcoPak credentials/recipients are copied or defaulted. Until all settings exist, forms retain WhatsApp. `GET /api/rfq` exposes only `{configured:boolean}`; it does not verify domain ownership or deliverability.
+
+The shared message builder includes stable model codes in the subject, a deduplicated Model / SKU immediately after Reference and per-line codes. Server validation resolves canonical available products, allows unique exact legacy name matches, validates quantities, escapes HTML, bounds the body and artwork (2 MB), rejects a honeypot and cross-origin requests, and applies a best-effort warm-instance throttle (not distributed rate limiting). Add Vercel Firewall protections for production abuse control. User-entered prices are not trusted as a final quote. Resend idempotency keys and frozen client retry payloads protect repeated identical submissions within the provider retention window; there is no automatic send retry. Unknown delivery outcomes remain errors, not success. No customer auto-reply is sent.
+
+Run `node scripts/test-rfq-message.mjs` and `node scripts/test-rfq-server.mjs` for mocked checks without real emails. Actual sender verification, DNS and authorized delivery testing remain required after configuration. API keys must never be exposed in client code or committed.
 
 Initial import (does not overwrite existing Coffee Mug edits): run `sanity exec scripts/import-coffee-mugs.mjs --with-user-token` inside `sanity-studio`.
 

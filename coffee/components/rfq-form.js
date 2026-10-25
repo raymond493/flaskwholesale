@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Send } from "lucide-react";
 import { validateRfq } from "@/coffee/lib/rfq";
 import { inquiryDraftStorageKey, inquiryQuantityTotal } from "@/coffee/lib/inquiry";
@@ -30,7 +30,12 @@ export function RfqForm({ products, defaultProduct }) {
     const [status, setStatus] = useState("idle");
     const [receipt, setReceipt] = useState(null);
     const [errors, setErrors] = useState({});
+    const [emailReady,setEmailReady]=useState(false);
+    const [sendError,setSendError]=useState("");
+    const sending=useRef(false);
+    const attempt=useRef(null);
     useEffect(() => {
+        fetch("/api/rfq").then(r=>r.json()).then(data=>setEmailReady(data.configured===true)).catch(()=>{});
         try {
             const saved = window.localStorage.getItem(inquiryDraftStorageKey);
             const stored = saved ? JSON.parse(saved) : [];
@@ -64,28 +69,43 @@ export function RfqForm({ products, defaultProduct }) {
     }
     async function submit(event) {
         event.preventDefault();
+        if(sending.current||status==="sent")return;
         const validation = validateRfq(form);
         setErrors(validation.errors);
         if (!validation.ok) {
             return;
         }
-        const message = buildRfqMessage(form,products,{reference:"FW-"+crypto.randomUUID().slice(0,8).toUpperCase()});
-        window.open("https://wa.me/8613267102135?text=" + encodeURIComponent(message.text), "_blank", "noopener,noreferrer");
-        setReceipt({ reference:message.reference, modelSummary:message.modelSummary, items: form.inquiryItems || [], product: form.productName, quantity: form.quantity });
-        setStatus("sent");
+        if(!emailReady){continueWhatsApp();return;}
+        sending.current=true;setStatus("sending");setSendError("");
+        if(!attempt.current)attempt.current={...form,displayCurrency:currency,pageUrl:window.location.href,submissionId:crypto.randomUUID()};
+        try{
+          const response=await fetch("/api/rfq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(attempt.current)});
+          const data=await response.json();
+          if(!response.ok||!data.ok)throw Error(data.error||"Unable to confirm delivery.");
+          setReceipt({reference:data.reference,modelSummary:data.modelSummary,items:form.inquiryItems||[],product:form.productName,quantity:form.quantity});setStatus("sent");
+          window.localStorage.removeItem(inquiryDraftStorageKey);clearItems();
+        }catch(error){setStatus("error");setSendError(error.message||"Unable to confirm delivery. Your details are preserved.");}
+        finally{sending.current=false;}
+    }
+    function continueWhatsApp(){
+        const message=buildRfqMessage(form,products,{reference:"FW-"+(attempt.current?.submissionId||crypto.randomUUID()).toUpperCase()});
+        window.open("https://wa.me/8613267102135?text="+encodeURIComponent(message.text),"_blank","noopener,noreferrer");
     }
     async function attachArtwork(file) {
         if (!file) {
             setForm((current) => ({ ...current, artwork: undefined }));
+            setErrors(current=>({...current,artwork:undefined}));
             return;
         }
-        if (file.size > 5 * 1024 * 1024) {
-            setErrors((current) => ({ ...current, artwork: "Artwork must be 5 MB or smaller." }));
+        if (file.size > 2 * 1024 * 1024) {
+            setForm(current=>({...current,artwork:undefined}));
+            setErrors((current) => ({ ...current, artwork: "Artwork must be 2 MB or smaller." }));
             return;
         }
-        const content = "";
-        setForm((current) => ({ ...current, artwork: { name: file.name, type: file.type || "application/octet-stream", content } }));
+        try{const content=await fileToBase64(file);
+        setForm((current) => ({ ...current, artwork: { name: file.name.replace(/[^\w .()-]/g,"_"), type: file.type || "application/octet-stream", content } }));
         setErrors((current) => ({ ...current, artwork: undefined }));
+        }catch{setErrors(current=>({...current,artwork:"Could not read artwork. Please select it again."}));}
     }
     return (<form onSubmit={submit} className="rounded-lg border border-black/10 bg-cream p-5 shadow-soft sm:p-8">
       <div className="mb-6">
@@ -145,16 +165,18 @@ export function RfqForm({ products, defaultProduct }) {
 
       <Field label="Logo / artwork (optional)" error={errors.artwork} className="mt-4">
         <input type="file" accept=".ai,.eps,.pdf,.svg,.png,.jpg,.jpeg" onChange={(event) => void attachArtwork(event.target.files?.[0])} className="w-full rounded-md border border-dashed border-black/20 bg-white px-3 py-3 file:mr-4 file:rounded-md file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:font-semibold file:text-emerald-800"/>
-        <span className="mt-1 block text-xs text-slate-500">Select an artwork filename, then attach the file in WhatsApp. Up to 5 MB.</span>
+        <span className="mt-1 block text-xs text-slate-500">{emailReady?"Artwork is included with your email inquiry. Up to 2 MB.":"Attach your artwork in WhatsApp. Up to 2 MB."}</span>
       </Field>
 
-      <button type="submit" disabled={status === "sending"} className="mt-5 inline-flex items-center gap-2 rounded-full bg-eucalyptus px-5 py-3 font-semibold text-white disabled:opacity-60">
+      <div className="hidden" aria-hidden="true"><label>Leave empty<input tabIndex={-1} autoComplete="off" value={form.website||""} onChange={event=>updateField("website",event.target.value)}/></label></div>
+      <button type="submit" disabled={status === "sending"||status==="sent"||Boolean(errors.artwork)} className="mt-5 inline-flex items-center gap-2 rounded-full bg-eucalyptus px-5 py-3 font-semibold text-white disabled:opacity-60">
         <Send size={18}/>
-        {status === "sending" ? "Sending..." : "Continue on WhatsApp"}
+        {status === "sending" ? "Sending..." : status==="sent"?"Inquiry sent":status==="error"?"Retry original inquiry":emailReady?"Send email inquiry":"Continue on WhatsApp"}
       </button>
 
-      {status === "sent" && receipt ? <div role="status" className="mt-5 rounded-xl bg-white p-5"><p className="font-semibold text-eucalyptus">Your inquiry is ready. Please send it in WhatsApp.</p><p className="mt-2 text-sm">Reference: {receipt.reference}<br/>Model / SKU: {receipt.modelSummary}</p>{receipt.items.length ? <ul className="mt-3 space-y-2 text-sm">{receipt.items.map((item) => <li key={item.id}>{[productCode(item.productSlug), item.productName].filter(Boolean).join(" · ")} · {item.selectedOption} · {item.quantity} units</li>)}</ul> : <p className="mt-3 text-sm">{receipt.product} · {receipt.quantity} units</p>}</div> : null}
-      {status === "error" ? <p className="mt-4 font-semibold text-red-700">Something went wrong. Please email raymond@mategourdwholesale.com.</p> : null}
+      {emailReady?<button type="button" onClick={continueWhatsApp} className="ml-4 mt-5 text-sm underline">Prefer WhatsApp?</button>:null}
+      {status === "sent" && receipt ? <div role="status" className="mt-5 rounded-xl bg-white p-5"><p className="font-semibold text-eucalyptus">Your email inquiry has been submitted. We will reply to your email.</p><p className="mt-2 text-sm">Reference: {receipt.reference}<br/>Model / SKU: {receipt.modelSummary}</p></div> : null}
+      {status === "error" ? <p role="alert" className="mt-4 font-semibold text-red-700">{sendError} Your form has not been cleared.</p> : null}
     </form>);
 }
 function fileToBase64(file) {
