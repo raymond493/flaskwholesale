@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, Box, Palette, Snowflake, ThermometerSun } from "lucide-react";
 import { CollectionProducts } from "@/coffee/components/collection-products";
 import { RfqForm } from "@/coffee/components/rfq-form";
+import { RecentWorkBar, RecentWorkPreview } from "@/components/RecentWork";
 export function InsulatedTumblersView({ products, customization }) {
     const featured = products[0];
     return (<main className="bg-[#f6f7f5] text-slate-950">
@@ -28,6 +29,8 @@ export function InsulatedTumblersView({ products, customization }) {
         </div>
       </section>
 
+      <RecentWorkBar />
+
       <section className="hidden border-b border-slate-200 bg-white sm:block">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
           <Feature icon={ThermometerSun} title="Vacuum insulated" body="Double-wall construction for hot and cold drinks."/>
@@ -47,6 +50,8 @@ export function InsulatedTumblersView({ products, customization }) {
         </div>
         {products.length ? (<CollectionProducts products={products}/>) : (<div className="rounded-md border border-slate-200 bg-white p-8 text-slate-600">The first insulated tumbler is being prepared.</div>)}
       </section>
+
+      <RecentWorkPreview />
 
       <section id="customization" className="scroll-mt-28 border-t border-slate-200 bg-white py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
