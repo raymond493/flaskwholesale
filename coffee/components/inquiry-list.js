@@ -45,7 +45,7 @@ export function InquiryListProvider({ children, availableSlugs }) {
         setOpen(true);
     }, []);
     const updateQuantity = useCallback((id, quantity) => {
-        const next = items.map((item) => (item.id === id ? { ...item, quantity: Math.max(item.moq, quantity) } : item));
+        const next = items.map((item) => (item.id === id ? { ...item, quantity: Math.max(1, Math.floor(quantity) || 1) } : item));
         persist(next);
     }, [items, persist]);
     const removeItem = useCallback((id) => persist(items.filter((item) => item.id !== id)), [items, persist]);
@@ -119,7 +119,7 @@ function InquiryDrawer({ items, onClose, onUpdateQuantity, onRemove, onRequestQu
         {items.length ? (<footer className="border-t border-slate-200 bg-white px-6 py-5 shadow-[0_-12px_32px_rgba(15,23,42,0.06)] sm:px-10 sm:py-7">
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">{items.some((item) => !item.unitPriceUsd) ? `Priced items subtotal · ${currency}` : `Estimated EXW total · ${currency}`}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">{items.some((item) => !item.unitPriceUsd) ? `Estimated product total · ${currency}` : `Estimated product total · ${currency}`}</p>
                 {items.some((item) => !item.unitPriceUsd) ? <p className="mt-1 text-xs text-slate-500">Items without a price will be quoted separately.</p> : null}
                 <p className="mt-1 text-sm text-slate-500">Freight and customization quoted separately</p>
               </div>
@@ -133,7 +133,10 @@ function InquiryDrawer({ items, onClose, onUpdateQuantity, onRemove, onRequestQu
     </div>);
 }
 function InquiryRow({ item, onUpdateQuantity, onRemove }) {
-    const step = item.moq >= 100 ? 100 : 1;
+    const step = 1;
+    const [quantityDraft, setQuantityDraft] = useState(String(item.quantity));
+    useEffect(() => setQuantityDraft(String(item.quantity)), [item.quantity]);
+    const commitQuantity = () => { const n = /^\d+$/.test(quantityDraft) && Number.isSafeInteger(Number(quantityDraft)) && Number(quantityDraft) > 0 ? Number(quantityDraft) : 1; setQuantityDraft(String(n)); onUpdateQuantity(item.id, n); };
     const { formatUsdAmount } = useCurrency();
     return (<article className="grid grid-cols-[92px_1fr] gap-4 py-6 first:pt-0 sm:grid-cols-[120px_1fr] sm:gap-6">
       <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50">
@@ -153,10 +156,10 @@ function InquiryRow({ item, onUpdateQuantity, onRemove }) {
           </button>
         </div>
         <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-lg text-slate-950"><span className="mr-2 text-sm font-bold uppercase text-stone-400">EXW</span><span className="font-bold">{item.unitPriceUsd ? formatUsdAmount(item.unitPriceUsd) : item.unitPriceLabel}</span></p>
+          <p className="text-lg text-slate-950"><span className="mr-2 text-sm font-bold uppercase text-stone-400">Unit price</span><span className="font-bold">{item.unitPriceUsd ? formatUsdAmount(item.unitPriceUsd) : item.unitPriceLabel}</span></p>
           <div className="flex h-12 w-48 items-center overflow-hidden rounded-xl border border-slate-200 bg-white">
             <button type="button" aria-label={`Decrease ${item.productName} quantity`} onClick={() => onUpdateQuantity(item.id, item.quantity - step)} className="grid h-full w-12 place-items-center text-slate-400 hover:bg-slate-50 hover:text-slate-900"><Minus size={17}/></button>
-            <input aria-label={`${item.productName} quantity`} type="number" min={item.moq} step={step} value={item.quantity} onChange={(event) => onUpdateQuantity(item.id, Number(event.target.value) || item.moq)} className="min-w-0 flex-1 border-x border-slate-200 py-3 text-center font-bold outline-none"/>
+            <input aria-label={`${item.productName} quantity`} type="number" min="1" step={step} value={quantityDraft} onChange={(event) => { setQuantityDraft(event.target.value); const n = Number(event.target.value); if (/^\d+$/.test(event.target.value) && Number.isSafeInteger(n) && n > 0) onUpdateQuantity(item.id, n); }} onBlur={commitQuantity} className="min-w-0 flex-1 border-x border-slate-200 py-3 text-center text-xl font-bold outline-none"/>
             <button type="button" aria-label={`Increase ${item.productName} quantity`} onClick={() => onUpdateQuantity(item.id, item.quantity + step)} className="grid h-full w-12 place-items-center text-[#2d6233] hover:bg-slate-50"><Plus size={17}/></button>
           </div>
         </div>

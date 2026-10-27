@@ -120,7 +120,7 @@ export function RfqForm({ products, defaultProduct }) {
             <div className="mt-3 divide-y divide-slate-100">
               {form.inquiryItems.map((item) => (<div key={item.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
                   <div><p className="font-bold text-slate-950">{[productCode(item.productSlug), item.productName].filter(Boolean).join(" ")}</p><p className="mt-1 text-sm text-slate-600">{item.selectedOption} · Qty {item.quantity.toLocaleString("en-US")}</p></div>
-                  <p className="shrink-0 text-sm font-bold text-slate-700">{item.unitPriceUsd ? `EXW ${formatUsdAmount(item.unitPriceUsd)}` : item.unitPriceLabel}</p>
+                  <p className="shrink-0 text-sm font-bold text-slate-700">{item.unitPriceUsd ? `Unit price ${formatUsdAmount(item.unitPriceUsd)}` : item.unitPriceLabel}</p>
                 </div>))}
             </div>
           </div>) : form.selectedOption ? (<div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 sm:col-span-2">
