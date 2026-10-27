@@ -16,6 +16,7 @@ const tumblerProductCodes = {
     "second-generation-380ml-510ml-stainless-steel-coffee-tumbler": "CM-08",
     "16oz-stainless-steel-tumbler-with-three-interchangeable-lids": "CM-09",
     "10oz-compact-insulated-coffee-tumbler-with-slide-lid": "CM-10",
+    "12oz-16oz-insulated-coffee-tumbler-with-silicone-grip": "CM-10",
     "27oz-vacuum-insulated-travel-tumbler-with-carry-handle": "CM-11",
     "12oz-egg-shaped-insulated-coffee-mug-with-handle": "CM-12",
     "12oz-slim-insulated-coffee-tumbler-with-slide-lid": "CM-13"

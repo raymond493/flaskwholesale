@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createClient} from '@sanity/client';
+import {buildRfqMessage} from '../coffee/lib/rfq-message.js';
+const slug='12oz-16oz-insulated-coffee-tumbler-with-silicone-grip';
+const origin=process.argv[2];
+const client=createClient({projectId:'12npkiv4',dataset:'production',apiVersion:'2026-10-26',useCdn:false});
+const p=await client.getDocument('coffee-'+slug);
+assert.deepEqual(p.variants.map(v=>v.size),['12oz','16oz']);assert.deepEqual(p.variants.map(v=>v.priceUsd),[3.39,3.63]);assert.equal(p.galleryImages.length,24);assert.equal(p.colors.length,10);assert.equal(p.imageUrl,p.galleryImages[0].imageUrl);assert.equal(p.videoPosterUrl,p.imageUrl);
+assert.equal(buildRfqMessage({productSlug:slug,selectedOption:'16oz',quantity:100},[p]).modelSummary,'CM-10');
+async function page(path){return origin?fetch(origin+path,{signal:AbortSignal.timeout(30000)}).then(async r=>{assert.equal(r.status,200);return r.text();}):fs.readFileSync('.next/server/app'+path+'.html','utf8');}
+const html=await page('/coffee-mug/'+slug);
+const media=[...html.matchAll(/<button[^>]+aria-label="(View product image [^"]+|Play product video)"[^>]*>([\s\S]*?)<\/button>/g)];
+assert.equal(media.length,25);assert.equal(media[1][1],'Play product video');assert.ok(media[0][2].includes('bc884a4858003eed23fcc29c6c71bb7eb5eec463'));
+for(const image of p.galleryImages)assert.ok(html.includes(new URL(image.imageUrl).pathname));
+assert.ok(html.includes('fc1305511c24c23fa8efe9aa383c9477c2524332.mp4'));assert.ok(html.includes('US$3.39-3.63 / pc EXW'));assert.ok(html.includes('CM-10'));
+let decoded=html;for(let i=0;i<3;i++)decoded=decoded.replace(/\\"/g,'"');for(const price of [3.39,3.63])assert.ok(decoded.includes('"priceUsd":'+price));
+for(const key of ['name','shortDescription','description','detailText','specificationsText','features','tags','variants'])assert.ok(!/380\s*ml|510\s*ml/i.test(JSON.stringify(p[key])));
+const list=await page('/coffee-mug');const paths=[...list.matchAll(/href="\/coffee-mug\/([^"?#/]+)"/g)].map(m=>m[1]);const unique=[...new Set(paths)];const position=unique.indexOf(slug);assert.ok(position>=0);assert.equal(unique[position-1],'12oz-slim-insulated-coffee-tumbler-with-slide-lid');assert.equal(unique[position+1],'second-generation-380ml-510ml-stainless-steel-coffee-tumbler');assert.ok(!unique.includes('10oz-compact-insulated-coffee-tumbler-with-slide-lid'));
+assert.equal((await client.getDocument('coffee-10oz-compact-insulated-coffee-tumbler-with-slide-lid')).isActive,false);
+console.log('PASS '+(origin||'built pages')+': CM10 24 images + second-position video; 10 colours; 12oz US$3.39 / 16oz US$3.63; RFQ model; CM13 → CM10 → CM08; old CM10 inactive.');
