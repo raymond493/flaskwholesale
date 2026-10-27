@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { parseSpecItems } from "@/coffee/lib/specifications";
 const tabs = [
     { id: "specifications", label: "Specifications" },
     { id: "faq", label: "FAQ" },
@@ -44,17 +45,6 @@ export function ProductDetailTabs({ specificationsText, faqText, detailText }) {
             </div>) : (<EmptyPanel label="Description"/>)) : null}
       </div>
     </section>);
-}
-function parseSpecItems(text = "") {
-    return text
-        .split(/\n{2,}/)
-        .map((block) => block.trim())
-        .filter(Boolean)
-        .map((block) => {
-        const [label = "", ...valueLines] = block.split("\n").map((line) => line.trim()).filter(Boolean);
-        return { label, value: valueLines.join("\n") };
-    })
-        .filter((item) => item.label && item.value);
 }
 function parseFaqItems(text = "") {
     const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
