@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createClient} from '@sanity/client';
+const config={apiVersion:'2026-10-26',useCdn:false,maxRetries:0};
+const source=createClient({...config,projectId:'rbq1eoim',dataset:'ecopak-coffee-cups-production'});
+const src=await source.fetch('*[_id=="product-12oz-stainless-steel-insulated-coffee-mug"][0]{"imageUrl":mainImage.asset->url,"galleryImages":galleryImages[]{_key,alt,"imageUrl":image.asset->url}}');
+const main='https://cdn.sanity.io/images/rbq1eoim/ecopak-coffee-cups-production/6ccffa6bede9c3af499700f63a924a5bcae0a326-1254x1254.png';
+assert.equal(src.imageUrl,main);assert.equal(src.galleryImages.length,11);assert.equal(src.galleryImages[0]._key,'cm02-clean-colour-collection');assert.equal(src.galleryImages[0].imageUrl,main);assert.ok(src.galleryImages.every(i=>i.imageUrl));
+const token=JSON.parse(fs.readFileSync('/Users/xiaziwen/.config/sanity/config.json','utf8')).authToken;
+const client=createClient({...config,projectId:'12npkiv4',dataset:'production',token});
+const before=await client.getDocument('coffee-12oz-stainless-steel-insulated-coffee-mug');
+assert.deepEqual(before.galleryImages.slice(4).map(i=>i.imageUrl),src.galleryImages.slice(1).map(i=>i.imageUrl),'Retained detail image order mismatch');
+fs.mkdirSync('../backups',{recursive:true});const backup='../backups/cm02-before-clean-gallery-'+Date.now()+'.json';fs.writeFileSync(backup,JSON.stringify(before,null,2));
+const set={galleryImages:src.galleryImages,imageUrl:main};if(before.videoPosterUrl===before.imageUrl)set.videoPosterUrl=main;
+await client.patch(before._id).ifRevisionId(before._rev).set(set).commit();
+const after=await client.getDocument(before._id);assert.deepEqual(after.galleryImages,src.galleryImages);assert.equal(after.imageUrl,main);
+for(const key of Object.keys(before).filter(k=>!['_rev','_updatedAt',...Object.keys(set)].includes(k)))assert.deepEqual(after[key],before[key],key+' unexpectedly changed');
+console.log('PASS: new CM02 main + 10 retained images; 11 images total; old four removed; poster updated; video, prices, capacity and other fields unchanged. Backup:',backup);
