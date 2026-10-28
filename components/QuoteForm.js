@@ -12,7 +12,7 @@ export default function QuoteForm() {
     if(ready){
       if(!attempt.current)attempt.current={...Object.fromEntries(data),generalInquiry:true,pageUrl:location.href,submissionId:crypto.randomUUID()};
       busy.current=true;setStatus("sending");setNotice("");
-      try{const r=await fetch("/api/rfq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(attempt.current)});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||"Unable to confirm delivery.");setStatus("sent");setNotice("Inquiry submitted. Reference: "+d.reference+". We will reply to your email.");}
+      try{const r=await fetch("/api/rfq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(attempt.current)});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||"Unable to confirm delivery.");window.gtag?.("event", "generate_lead", {method:"inquiry_form"});setStatus("sent");setNotice("Inquiry submitted. Reference: "+d.reference+". We will reply to your email.");}
       catch(error){setStatus("error");setNotice(error.message+" Your details are preserved.");}finally{busy.current=false;}
       return;
     }

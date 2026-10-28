@@ -82,6 +82,7 @@ export function RfqForm({ products, defaultProduct }) {
           const response=await fetch("/api/rfq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(attempt.current)});
           const data=await response.json();
           if(!response.ok||!data.ok)throw Error(data.error||"Unable to confirm delivery.");
+          window.gtag?.("event", "generate_lead", {method:"inquiry_form"});
           setReceipt({reference:data.reference,modelSummary:data.modelSummary,items:form.inquiryItems||[],product:form.productName,quantity:form.quantity});setStatus("sent");
           window.localStorage.removeItem(inquiryDraftStorageKey);clearItems();
         }catch(error){setStatus("error");setSendError(error.message||"Unable to confirm delivery. Your details are preserved.");}
