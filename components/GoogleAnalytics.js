@@ -8,7 +8,7 @@ export default function GoogleAnalytics() {
   useEffect(() => {
     if (!window.gtag) {
       window.dataLayer = window.dataLayer || [];
-      window.gtag = function (...args) { window.dataLayer.push(args); };
+      window.gtag = function () { window.dataLayer.push(arguments); };
       window.gtag("js", new Date());
       window.gtag("config", measurementId, {send_page_view:false, page_location:location.origin + location.pathname});
       const script = document.createElement("script");
