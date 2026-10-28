@@ -9,9 +9,9 @@ export const fallbackCurrencyRates = {
 export function completeCurrencyRates(rates = {}) {
     return Object.fromEntries(supportedCurrencies.map(code=>[code,code === "AUD" ? 1 : typeof rates?.[code] === "number" && Number.isFinite(rates[code]) && rates[code] > 0 ? rates[code] : fallbackCurrencyRates[code]]));
 }
-export function preferredCurrency(search,saved) {
+export function preferredCurrency(search,saved,suggested="USD") {
     const linked = new URLSearchParams(search).get("currency")?.toUpperCase();
-    return isSupportedCurrency(linked) ? linked : isSupportedCurrency(saved) ? saved : "USD";
+    return isSupportedCurrency(linked) ? linked : isSupportedCurrency(saved) ? saved : isSupportedCurrency(suggested) ? suggested : "USD";
 }
 const eurozoneCountries = new Set([
     "AT", "BE", "BG", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV",
@@ -23,6 +23,7 @@ export function isSupportedCurrency(value) {
 export function currencyForCountry(countryCode) {
     const country = countryCode.trim().toUpperCase();
     if (country === "CA") return "CAD";
+    if (country === "GB") return "GBP";
     if (country === "AU")
         return "AUD";
     if (eurozoneCountries.has(country))
