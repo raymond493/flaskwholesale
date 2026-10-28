@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { CurrencySelector } from "@/coffee/components/currency-provider";
 import { site } from "@/lib/site";
 
 const menus = [
@@ -67,12 +68,13 @@ export default function Header() {
     <div className="topbar"><div className="container"><span>OEM & ODM stainless steel drinkware manufacturer</span><div className="topbar-links"><a href={site.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp {site.phone}</a><a href={`mailto:${site.email}`}>{site.email}</a></div></div></div>
     <header className="header"><div className="container nav">
       <Link prefetch={false} className="brand" href="/" aria-label="FlaskWholesale home"><img className="brand-logo" src="/brand/flaskwholesale-logo-v1.webp" alt="FlaskWholesale" width="800" height="165" fetchPriority="high" /></Link>
+      <div className="header-currency"><CurrencySelector /></div>
       <button className="menu-button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="main-menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "×" : "☰"}</button>
       <nav id="main-menu" aria-label="Main navigation" className={`menu ${open ? "is-open" : ""}`}>
         <Link prefetch={false} href="/" onClick={() => setOpen(false)}>Home</Link>
         <Link prefetch={false} href="/coffee-mug" onClick={() => setOpen(false)}>Coffee Mug</Link>
         <Link prefetch={false} href="/recent-work" onClick={() => setOpen(false)}>Recent Work</Link>
-        {menus.map((menu, index) => <div className={`nav-group ${menu.columns.length > 1 ? "wide" : ""} ${expanded === menu.label ? "is-expanded" : ""}`} key={menu.label}>
+        {menus.filter(menu => !["Custom Solutions", "Knowledge Center"].includes(menu.label)).map((menu, index) => <div className={`nav-group ${menu.columns.length > 1 ? "wide" : ""} ${expanded === menu.label ? "is-expanded" : ""}`} key={menu.label}>
           <Link prefetch={false} href={menu.href} onClick={() => setOpen(false)}>{menu.label}<span className="nav-chevron">⌄</span></Link>
           <button type="button" className="mobile-submenu-toggle" aria-label={`${expanded === menu.label ? "Collapse" : "Expand"} ${menu.label}`} aria-expanded={expanded === menu.label} aria-controls={`submenu-${index}`} onClick={()=>setExpanded(expanded === menu.label ? null : menu.label)}>{expanded === menu.label ? "−" : "+"}</button>
           <div id={`submenu-${index}`} className="dropdown">{menu.columns.map((column) => <div key={column.title}><strong>{column.title}</strong>{column.links.map(([label, href]) => <Link prefetch={false} href={href} onClick={() => setOpen(false)} key={href}>{label}</Link>)}</div>)}</div>

@@ -1,4 +1,5 @@
 "use client";
+import { Globe2 } from "lucide-react";
 import { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { convertFromAud, convertFromUsd, completeCurrencyRates, fallbackCurrencyRates, preferredCurrency, supportedCurrencies, isSupportedCurrency } from "../lib/currency";
 import { formatCurrency } from "../lib/money";
@@ -41,5 +42,5 @@ export function CurrencyProvider({children}) {
 export function useCurrency() { return useContext(Context); }
 export function CurrencySelector(){
   const {currency,selectCurrency}=useCurrency();
-  return <label className="flex items-center gap-2 text-sm"><span>Currency</span><select aria-label="Currency" value={currency} onChange={event=>selectCurrency(event.target.value)} className="rounded-md border border-slate-200 bg-white px-2 py-2 text-base">{supportedCurrencies.map(code=><option key={code} value={code}>{code}</option>)}</select></label>;
+  return <label className="currency-switch"><Globe2 size={17} aria-hidden="true"/><select aria-label="Currency" value={currency} onChange={event=>selectCurrency(event.target.value)}>{supportedCurrencies.map(code=><option key={code} value={code}>{code}</option>)}</select></label>;
 }
