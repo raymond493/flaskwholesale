@@ -8,6 +8,7 @@ export function formatCurrency(amount, currency) {
         minimumFractionDigits: hasCents ? 2 : 0,
         maximumFractionDigits: hasCents ? 2 : 0
     }).format(rounded);
+    if (currency === "CAD" && formatted.startsWith("$")) return `C${formatted}`;
     return currency === "AUD" && formatted.startsWith("$") ? `A${formatted}` : formatted;
 }
 export function formatAud(amount) {

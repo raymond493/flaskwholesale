@@ -4,7 +4,7 @@ import { convertFromAud, convertFromUsd, completeCurrencyRates, fallbackCurrency
 import { formatCurrency } from "../lib/money";
 const Context = createContext(null);
 const preferenceKey="flaskwholesale-currency-preference";
-const rateKey="flaskwholesale-currency-rates";
+const rateKey="flaskwholesale-currency-rates-v2-cad";
 export function CurrencyProvider({children}) {
   const [currency,setCurrency]=useState("USD");
   const [rates,setRates]=useState(fallbackCurrencyRates);
@@ -15,13 +15,21 @@ export function CurrencyProvider({children}) {
       try{localStorage.setItem(preferenceKey,next);}catch{}
     }
     readPreference();window.addEventListener("popstate",readPreference);
-    try{
-      const cached=JSON.parse(localStorage.getItem(rateKey)||"null");
-      const valid=cached?.expiresAt>Date.now();
-      const next=completeCurrencyRates(valid?cached.rates:fallbackCurrencyRates);setRates(next);
-      localStorage.setItem(rateKey,JSON.stringify({rates:next,expiresAt:valid?cached.expiresAt:Date.now()+12*60*60*1000}));
-    }catch{}
-    return()=>window.removeEventListener("popstate",readPreference);
+    let cancelled=false;
+    async function loadRates(){
+      try{
+        const cached=JSON.parse(localStorage.getItem(rateKey)||"null");
+        if(cached?.expiresAt>Date.now() && supportedCurrencies.every(code=>Number.isFinite(cached.rates?.[code])&&cached.rates[code]>0)){setRates(completeCurrencyRates(cached.rates));return;}
+      }catch{}
+      try{
+        const response=await fetch("/api/currency-rates");if(!response.ok)throw Error();
+        const data=await response.json();const next=completeCurrencyRates(data.rates);
+        if(cancelled)return;setRates(next);
+        try{localStorage.setItem(rateKey,JSON.stringify({rates:next,expiresAt:Date.now()+12*60*60*1000}));}catch{}
+      }catch{}
+    }
+    loadRates();
+    return()=>{cancelled=true;window.removeEventListener("popstate",readPreference);};
   },[]);
   const value = useMemo(()=>({currency,rates,selectCurrency:(next)=>{
     if(!isSupportedCurrency(next))return;setCurrency(next);

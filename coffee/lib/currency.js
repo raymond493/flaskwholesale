@@ -1,9 +1,10 @@
-export const supportedCurrencies = ["USD", "EUR", "AUD", "GBP"];
+export const supportedCurrencies = ["USD", "EUR", "AUD", "GBP", "CAD"];
 export const fallbackCurrencyRates = {
     AUD: 1,
     USD: 0.6939,
     EUR: 0.60702,
-    GBP: 0.5226
+    GBP: 0.5226,
+    CAD: 0.97207
 };
 export function completeCurrencyRates(rates = {}) {
     return Object.fromEntries(supportedCurrencies.map(code=>[code,code === "AUD" ? 1 : typeof rates?.[code] === "number" && Number.isFinite(rates[code]) && rates[code] > 0 ? rates[code] : fallbackCurrencyRates[code]]));
@@ -21,6 +22,7 @@ export function isSupportedCurrency(value) {
 }
 export function currencyForCountry(countryCode) {
     const country = countryCode.trim().toUpperCase();
+    if (country === "CA") return "CAD";
     if (country === "AU")
         return "AUD";
     if (eurozoneCountries.has(country))
