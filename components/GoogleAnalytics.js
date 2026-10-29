@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { productCode } from "@/coffee/lib/catalog";
 
 const measurementId = "G-8F6QJSYSNT";
 export default function GoogleAnalytics() {
@@ -24,7 +25,12 @@ export default function GoogleAnalytics() {
     return () => document.removeEventListener("click", onClick);
   }, []);
   useEffect(() => {
-    if (pathname) window.gtag?.("event", "page_view", {page_location:location.origin + pathname, page_path:pathname});
+    if (!pathname) return;
+    const slug = pathname.startsWith("/coffee-mug/") ? pathname.split("/")[2] : "";
+    const code = productCode(slug);
+    const title = code && !document.title.startsWith(code) ? `${code} · ${document.title}` : document.title;
+    window.gtag?.("event", "page_view", {page_location:location.origin + pathname, page_path:pathname, page_title:title, ...(code ? {product_model:code} : {})});
+    if (code) window.gtag?.("event", "view_item", {items:[{item_id:code,item_name:title,item_category:"Coffee Mug"}]});
   }, [pathname]);
   return null;
 }

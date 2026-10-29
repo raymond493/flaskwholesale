@@ -21,7 +21,7 @@ export async function generateMetadata({ params }) {
     const { slug } = await params;
     const product = await getProductBySlug(slug);
     return {
-        title: product ? product.name : "Custom Product",
+        title: product ? `${productCode(slug) ? `${productCode(slug)} · ` : ""}${product.name}` : "Custom Product",
         description: product?.description,
         alternates: {canonical: `/coffee-mug/${slug}`}
     };
