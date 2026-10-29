@@ -14,7 +14,7 @@ export async function getProductBySlug(slug) {
   return p ? normalize(p) : null;
 }
 export async function getProductSlugs() { return (await getProducts()).map(p=>p.slug); }
-export async function getProductOptions() { return (await getProducts()).map(({id,name,slug})=>({id,name,slug})); }
+export async function getProductOptions() { return (await getProducts()).map(({id,name,slug,variants})=>({id,name,slug,variants})); }
 export async function getRelatedProducts(product) { return (await getProducts()).filter(p=>p.id !== product.id).slice(0,4); }
 export async function getInsulatedTumblerCustomization() {
   return client.fetch('*[_id == "coffee-customization"][0]', {}, options);

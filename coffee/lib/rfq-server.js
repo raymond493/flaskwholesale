@@ -15,7 +15,7 @@ export function prepareRfq(raw,catalog){
   if(raw.website)throw Error("Unable to submit this form.");
   input.quantity=String(raw.quantity??"");
   const quantity=n=>Number.isSafeInteger(Number(n))&&Number(n)>0&&Number(n)<=100000000;
-  if(!quantity(input.quantity))throw Error("Enter a whole-number quantity above 0.");
+  if(input.quantity && !quantity(input.quantity))throw Error("Enter a whole-number quantity above 0.");
   if(raw.inquiryItems!=null&&!Array.isArray(raw.inquiryItems))throw Error("Invalid inquiry list.");
   if(raw.inquiryItems?.length){
     if(raw.inquiryItems.length>40)throw Error("Maximum 40 inquiry lines.");
@@ -30,7 +30,7 @@ export function prepareRfq(raw,catalog){
     input.productName=input.inquiryItems.map(item=>item.productName).join(", ");
   }else if(raw.generalInquiry===true){
     input.productName="General drinkware inquiry";input.productSlug="";
-    if(!input.message)throw Error("Tell us your product requirements.");
+
   }else{
     const resolved=resolveRfqProduct(input,catalog);if(!resolved.found)throw Error("Choose an available product.");
     Object.assign(input,resolved);

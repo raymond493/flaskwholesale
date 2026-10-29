@@ -1,9 +1,6 @@
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function validateRfq(input) {
     const errors = {};
-    if (!input.productName.trim()) {
-        errors.productName = "Choose a product before sending an inquiry.";
-    }
     if (!input.name.trim()) {
         errors.name = "Enter your name.";
     }
@@ -12,9 +9,6 @@ export function validateRfq(input) {
     }
     if (!input.country.trim()) {
         errors.country = "Enter your country.";
-    }
-    if (!Number.isFinite(Number(input.quantity)) || Number(input.quantity) <= 0) {
-        errors.quantity = "Enter a quantity above 0.";
     }
     return {
         ok: Object.keys(errors).length === 0,

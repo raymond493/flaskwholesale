@@ -20,6 +20,10 @@ const emptyForm = {
     message: ""
 };
 export function RfqForm({ products, defaultProduct }) {
+    const cmProducts = products.filter(p => /^CM-\d+$/i.test(productCode(p.slug || "") || ""));
+    const [rows,setRows]=useState([{product:defaultProduct?.id || "",option:"",quantity:"1"}]);
+    function optionsFor(p){if(!p)return [];if(productCode(p.slug)==="CM-09")return ["16oz · Straw lid","16oz · Three-lid set"];return [...new Set((p.variants||[]).map(v=>v.name||v.size).filter(Boolean))];}
+    function changeRow(index,patch){setRows(current=>current.map((row,i)=>i===index?{...row,...patch}:row));}
     const { clearItems } = useInquiryList();
     const { currency, formatUsdAmount } = useCurrency();
     const [form, setForm] = useState({
@@ -41,25 +45,17 @@ export function RfqForm({ products, defaultProduct }) {
             const stored = saved ? JSON.parse(saved) : [];
             const inquiryItems = Array.isArray(stored) ? stored.map(item=>({...item,...resolveRfqProduct(item,products)})).filter(item=>item.found) : [];
             if(saved) window.localStorage.setItem(inquiryDraftStorageKey,JSON.stringify(inquiryItems));
-            if (inquiryItems.length) {
-                setForm((current) => ({
-                    ...current,
-                    productName: inquiryItems.map((item) => item.productName).join(", "),
-                    productSlug: "",
-                    selectedOption: inquiryItems.map((item) => `${item.productName}: ${item.selectedOption}`).join("\n"),
-                    unitPrice: "See bulk inquiry list",
-                    quantity: String(inquiryQuantityTotal(inquiryItems)),
-                    inquiryItems
-                }));
-            }
+            if (inquiryItems.length) setRows(inquiryItems.map(item=>({product:cmProducts.find(p=>p.slug===item.productSlug)?.id || "",option:item.selectedOption || "",quantity:String(item.quantity || 1)})));
+
         }
         catch {
             window.localStorage.removeItem(inquiryDraftStorageKey);
         }
         function applySelection(event) {
             const selection = {...event.detail,...resolveRfqProduct(event.detail,products)};
-            setForm((current) => ({ ...current, ...selection }));
-            setErrors((current) => ({ ...current, productName: undefined, quantity: undefined }));
+            const p=cmProducts.find(p=>p.slug===selection.productSlug || p.name===selection.productName);
+            if(p)setRows([{product:p.id,option:selection.selectedOption||"",quantity:String(selection.quantity||1)}]);
+
         }
         document.addEventListener("flaskwholesale:quote-selection", applySelection);
         return () => document.removeEventListener("flaskwholesale:quote-selection", applySelection);
@@ -70,14 +66,17 @@ export function RfqForm({ products, defaultProduct }) {
     async function submit(event) {
         event.preventDefault();
         if(sending.current||status==="sent")return;
-        const validation = validateRfq(form);
+        const items=rows.filter(row=>row.product).map((row,i)=>{const p=cmProducts.find(p=>p.id===row.product);return {id:`rfq-${i}`,productId:p?.id,productSlug:p?.slug,productName:p?.name,selectedOption:row.option,quantity:row.quantity.trim()?Number(row.quantity):1};});
+        if(items.some(item=>!item.productSlug||!Number.isSafeInteger(item.quantity)||item.quantity<1)){setErrors({productName:"Enter a whole-number quantity above zero for selected products."});return;}
+        const submission={...form,inquiryItems:items,productName:items.length?items.map(i=>i.productName).join(", "):"General inquiry",productSlug:items.length===1?items[0].productSlug:"",quantity:items.length?String(items.reduce((n,i)=>n+i.quantity,0)):"",generalInquiry:!items.length};
+        const validation = validateRfq(submission);
         setErrors(validation.errors);
         if (!validation.ok) {
             return;
         }
         if(!emailReady){continueWhatsApp();return;}
         sending.current=true;setStatus("sending");setSendError("");
-        if(!attempt.current)attempt.current={...form,displayCurrency:currency,pageUrl:window.location.href,submissionId:crypto.randomUUID()};
+        if(!attempt.current)attempt.current={...submission,displayCurrency:currency,pageUrl:window.location.href,submissionId:crypto.randomUUID()};
         try{
           const response=await fetch("/api/rfq",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(attempt.current)});
           const data=await response.json();
@@ -89,7 +88,7 @@ export function RfqForm({ products, defaultProduct }) {
         finally{sending.current=false;}
     }
     function continueWhatsApp(){
-        const message=buildRfqMessage(form,products,{reference:"FW-"+(attempt.current?.submissionId||crypto.randomUUID()).toUpperCase()});
+        const message=buildRfqMessage(attempt.current||form,products,{reference:"FW-"+(attempt.current?.submissionId||crypto.randomUUID()).toUpperCase()});
         window.open("https://wa.me/8613267102135?text="+encodeURIComponent(message.text),"_blank","noopener,noreferrer");
     }
     async function attachArtwork(file) {
@@ -116,30 +115,29 @@ export function RfqForm({ products, defaultProduct }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {form.inquiryItems?.length ? (<div className="rounded-lg border border-emerald-200 bg-white p-4 sm:col-span-2">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">Bulk inquiry list ({form.inquiryItems.length})</p>
-            <div className="mt-3 divide-y divide-slate-100">
-              {form.inquiryItems.map((item) => (<div key={item.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <div><p className="font-bold text-slate-950">{[productCode(item.productSlug), item.productName].filter(Boolean).join(" ")}</p><p className="mt-1 text-sm text-slate-600">{item.selectedOption} · Qty {item.quantity.toLocaleString("en-US")}</p></div>
-                  <p className="shrink-0 text-sm font-bold text-slate-700">{item.unitPriceUsd ? `Unit price ${formatUsdAmount(item.unitPriceUsd)}` : item.unitPriceLabel}</p>
-                </div>))}
-            </div>
-          </div>) : form.selectedOption ? (<div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 sm:col-span-2">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">Selected option</p>
-            <p className="mt-1 font-bold text-slate-950">{form.selectedOption}</p>
-            {form.unitPrice ? <p className="mt-1 text-sm text-slate-600">{form.unitPrice}</p> : null}
-          </div>) : null}
-        {!form.inquiryItems?.length ? <Field label="Product" error={errors.productName}>
-          <select name="productSlug" value={form.productSlug || ""} onChange={(event) => {const product=products.find(p=>p.slug===event.target.value);setForm((current)=>({...current,productName:product?.name||"",productSlug:product?.slug||"",selectedOption:undefined,unitPrice:undefined,inquiryItems:undefined}));}} className="w-full rounded-md border border-black/15 bg-white px-3 py-2">
-            <option value="">Choose a product</option>
-            {products.map((product) => (<option key={product.id} value={product.slug}>
-                {[productCode(product.slug),product.name].filter(Boolean).join(" ")}
-              </option>))}
-          </select>
-        </Field> : null}
-        {!form.inquiryItems?.length ? <Field label="Quantity" error={errors.quantity}>
-          <input value={form.quantity} onChange={(event) => updateField("quantity", event.target.value)} className="w-full rounded-md border border-black/15 px-3 py-2"/>
-        </Field> : null}
+        <div className="space-y-3 sm:col-span-2">
+          <p className="font-semibold">Products & sizes (optional)</p>
+          {rows.map((row, index) => {
+            const product = cmProducts.find((p) => p.id === row.product);
+            const options = optionsFor(product);
+            return <div key={index} className="space-y-3 rounded-lg border border-black/10 bg-white p-3">
+              <Field label="Product"><select value={row.product} onChange={(e) => changeRow(index, { product: e.target.value, option: "" })} className="w-full min-w-0 rounded-md border border-black/15 px-3 py-3">
+                <option value="">Choose a product</option>
+                {cmProducts.map((p) => <option key={p.id} value={p.id}>{productCode(p.slug || "")} · {p.name}</option>)}
+              </select></Field>
+              {product ? <p className="text-sm leading-relaxed text-slate-600">{productCode(product.slug || "")} · {product.name}</p> : null}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Size / lid option"><select value={row.option || (options.length === 1 ? options[0] : "")} onChange={(e) => changeRow(index, { option: e.target.value })} className="w-full rounded-md border border-black/15 px-3 py-3">
+                  <option value="">Choose an option</option>{options.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select></Field>
+                <Field label="Quantity"><input type="number" min="1" step="1" value={row.quantity} onChange={(e) => changeRow(index, { quantity: e.target.value })} className="w-full rounded-md border border-black/15 px-3 py-3" /></Field>
+              </div>
+              {rows.length > 1 ? <button type="button" onClick={() => setRows((current) => current.filter((_, i) => i !== index))} className="text-sm text-red-700">Remove</button> : null}
+            </div>;
+          })}
+          {errors.productName ? <p role="alert" className="text-sm text-red-700">{errors.productName}</p> : null}
+          <button type="button" onClick={() => setRows((current) => [...current, { product: "", option: "", quantity: "1" }])} className="rounded-full border border-eucalyptus px-4 py-2 font-semibold text-eucalyptus">+ Add another product / size</button>
+        </div>
         <Field label="Name" error={errors.name}>
           <input value={form.name} onChange={(event) => updateField("name", event.target.value)} className="w-full rounded-md border border-black/15 px-3 py-2"/>
         </Field>
