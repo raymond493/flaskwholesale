@@ -1,3 +1,4 @@
+import { RecentWorkPreview } from "@/components/RecentWork";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, LockKeyhole, Paintbrush, Truck } from "lucide-react";
@@ -130,6 +131,7 @@ export default async function ProductPage({ params }) {
             {relatedProducts.map((entry) => <ProductCard key={entry.id} product={entry}/>)}
           </div>
         </section>) : null}
+      <RecentWorkPreview />
     </main>);
 }
 function Trust({ icon: Icon, label }) {
