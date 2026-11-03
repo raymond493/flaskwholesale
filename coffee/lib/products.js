@@ -2,15 +2,15 @@ import { createClient } from "@sanity/client";
 import { catalogVariants } from "./catalog";
 
 const client = createClient({ projectId: "12npkiv4", dataset: "production", apiVersion: "2026-10-13", useCdn: false });
-const options = { tag: "coffee-catalog-cm02-cm03-gallery-20261028", next: { revalidate: 3600, tags: ["coffee-products"] } };
+const options = { tag: "coffee-catalog-cm08-unpublished-20261103", next: { revalidate: 3600, tags: ["coffee-products"] } };
 const normalize = (p) => ({ ...p, id: p._id, variants: catalogVariants(p), colors: p.colors || [], tags: p.tags || [], features: p.features || [], galleryImages: p.galleryImages || [], videoUrls: p.videoUrls || [] });
 export async function getProductsByCollection() {
-  const products = await client.fetch('*[_type == "coffeeProduct" && isActive != false]', {}, options);
+  const products = await client.fetch('*[_type == "coffeeProduct" && isActive != false && hidden != true]', {}, options);
   return products.map(normalize).sort((a,b) => (a.collectionRanks?.find(r=>r.slug === "insulated-tumblers")?.position ?? 999) - (b.collectionRanks?.find(r=>r.slug === "insulated-tumblers")?.position ?? 999) || a.name.localeCompare(b.name));
 }
 export const getProducts = getProductsByCollection;
 export async function getProductBySlug(slug) {
-  const p = await client.fetch('*[_type == "coffeeProduct" && isActive != false && slug == $slug][0]', {slug}, options);
+  const p = await client.fetch('*[_type == "coffeeProduct" && isActive != false && hidden != true && slug == $slug][0]', {slug}, options);
   return p ? normalize(p) : null;
 }
 export async function getProductSlugs() { return (await getProducts()).map(p=>p.slug); }
