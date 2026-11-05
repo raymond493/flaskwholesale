@@ -13,7 +13,7 @@ const tumblerProductCodes = {
     "12oz-20oz-leakproof-stainless-steel-coffee-tumbler": "CM-05",
     "12oz-custom-egg-shaped-stainless-steel-tumbler": "CM-06",
     "20oz-powder-coated-stainless-steel-car-tumbler": "CM-07",
-    "second-generation-380ml-510ml-stainless-steel-coffee-tumbler": "CM-08",
+    "15oz-450ml-insulated-stainless-steel-coffee-mug-with-handle": "CM-08",
     "16oz-stainless-steel-tumbler-with-three-interchangeable-lids": "CM-09",
     "10oz-compact-insulated-coffee-tumbler-with-slide-lid": "CM-10",
     "12oz-16oz-insulated-coffee-tumbler-with-silicone-grip": "CM-10",

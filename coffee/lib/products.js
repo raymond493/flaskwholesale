@@ -2,7 +2,7 @@ import { createClient } from "@sanity/client";
 import { catalogVariants } from "./catalog";
 
 const client = createClient({ projectId: "12npkiv4", dataset: "production", apiVersion: "2026-10-13", useCdn: false });
-const options = { tag: "coffee-catalog-cm10-cm13-swapped-20261103", next: { revalidate: 3600, tags: ["coffee-products"] } };
+const options = { tag: "coffee-catalog-final-cm08-20261105", next: { revalidate: 3600, tags: ["coffee-products"] } };
 const normalize = (p) => ({ ...p, id: p._id, variants: catalogVariants(p), colors: p.colors || [], tags: p.tags || [], features: p.features || [], galleryImages: p.galleryImages || [], videoUrls: p.videoUrls || [] });
 export async function getProductsByCollection() {
   const products = await client.fetch('*[_type == "coffeeProduct" && isActive != false && hidden != true]', {}, options);
