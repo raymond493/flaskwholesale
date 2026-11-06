@@ -22,7 +22,7 @@ const emptyForm = {
 export function RfqForm({ products, defaultProduct }) {
     const cmProducts = products.filter(p => /^CM-\d+$/i.test(productCode(p.slug || "") || ""));
     const [rows,setRows]=useState([{product:defaultProduct?.id || "",option:"",quantity:"1"}]);
-    function optionsFor(p){if(!p)return [];if(productCode(p.slug)==="CM-09")return ["16oz · Straw lid","16oz · Three-lid set"];return [...new Set((p.variants||[]).map(v=>v.name||v.size).filter(Boolean))];}
+    function optionsFor(p){if(!p)return [];return [...new Set((p.variants||[]).map(v=>v.name||v.size).filter(Boolean))];}
     function changeRow(index,patch){setRows(current=>current.map((row,i)=>i===index?{...row,...patch}:row));}
     const { clearItems } = useInquiryList();
     const { currency, formatUsdAmount } = useCurrency();
