@@ -72,7 +72,7 @@ export default function Header() {
       <button className="menu-button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="main-menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "×" : "☰"}</button>
       <nav id="main-menu" aria-label="Main navigation" className={`menu ${open ? "is-open" : ""}`}>
         <Link prefetch={false} href="/" onClick={() => setOpen(false)}>Home</Link>
-        <Link prefetch={false} href="/coffee-mug" onClick={() => setOpen(false)}>Coffee Mug</Link>
+        <Link prefetch={false} href="/coffee-mug" onClick={() => setOpen(false)}>Tumbler</Link>
         <Link prefetch={false} href="/recent-work" onClick={() => setOpen(false)}>Recent Work</Link>
         {menus.filter(menu => !["Custom Solutions", "Knowledge Center"].includes(menu.label)).map((menu, index) => <div className={`nav-group ${menu.columns.length > 1 ? "wide" : ""} ${expanded === menu.label ? "is-expanded" : ""}`} key={menu.label}>
           <Link prefetch={false} href={menu.href} onClick={() => setOpen(false)}>{menu.label}<span className="nav-chevron">⌄</span></Link>

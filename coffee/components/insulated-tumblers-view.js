@@ -13,7 +13,7 @@ export function InsulatedTumblersView({ products, customization }) {
         <div className="relative mx-auto flex max-w-7xl items-center px-4 py-6 sm:min-h-[320px] sm:px-6 sm:py-10 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200 sm:text-sm">Custom stainless steel drinkware</p>
-            <h1 className="mt-2 font-serif text-3xl leading-tight sm:mt-4 sm:text-5xl">Coffee Mug</h1>
+            <h1 className="mt-2 font-serif text-3xl leading-tight sm:mt-4 sm:text-5xl">Tumbler</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85 sm:mt-5 sm:text-lg sm:leading-8">
               Vacuum-insulated mugs for cafes, lifestyle brands, corporate gifting, and retail programs. Customise the colour, logo, finish, and packaging for your project.
             </p>
