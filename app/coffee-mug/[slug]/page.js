@@ -20,7 +20,6 @@ export async function generateStaticParams() {
 }
 export async function generateMetadata({ params }) {
     const { slug } = await params;
-    if (slug === "second-generation-380ml-510ml-stainless-steel-coffee-tumbler") notFound();
     const product = await getProductBySlug(slug);
     return {
         title: product ? `${productCode(slug) ? `${productCode(slug)} · ` : ""}${product.name}` : "Custom Product",
@@ -30,7 +29,6 @@ export async function generateMetadata({ params }) {
 }
 export default async function ProductPage({ params }) {
     const { slug } = await params;
-    if (slug === "second-generation-380ml-510ml-stainless-steel-coffee-tumbler") notFound();
     const product = await getProductBySlug(slug);
     const products = await getProductOptions();
     if (!product) {
