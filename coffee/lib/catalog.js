@@ -5,6 +5,7 @@ export const packagingCategories = [
 ];
 // Stable model numbers shown before each insulated tumbler title.
 const tumblerProductCodes = {
+    "16oz-25oz-insulated-stainless-steel-tumbler-with-metal-straw": "CM-16",
     "12oz-stainless-steel-insulated-milk-mug-with-inner-scale": "CM-01",
     "12oz-stainless-steel-insulated-coffee-mug": "CM-02",
     "12oz-stainless-steel-insulated-coffee-mug-with-handle": "CM-03",
